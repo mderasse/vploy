@@ -1,0 +1,15 @@
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform
+
+# Ansible
+*.retry
+
+# Generated Template
+generated/*
+
+# Configuration
+config/*.yml
+!config/*.dist.yml
+config/tower_cli.cfg

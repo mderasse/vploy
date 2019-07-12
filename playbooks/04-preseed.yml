@@ -1,0 +1,31 @@
+---
+- name: Generate Preseed
+  hosts: localhost
+  connection: local
+  vars_files:
+    - ../config/dependencies.yml
+  tasks:
+  # Generate Debian 10 Preseed
+  - name: Preseed Debian 10 - Creates directory
+    file:
+      path: ../generated/preseed/debian10
+      state: directory
+
+  - name: Preseed Debian 10 - Copy Ansible Key
+    shell:
+      cmd: cp ../generated/keys/ansible.pub ../generated/preseed/debian10/ansible.pub
+
+  - name: Preseed Debian 10 - Copy Init
+    shell:
+      cmd: cp files/debian10_init.sh ../generated/preseed/debian10/init.sh
+
+  - name: Preseed Debian 10 - Generate Preseed File
+    template:
+      src: templates/debian10_preseed.j2
+      dest: ../generated/preseed/debian10/debian10_preseed.cfg
+      mode: 0644
+
+#  - name: Preseed Debian 10 - Build Preseed ISOs
+#    shell:
+#      cmd: genisoimage -l -o preseed.iso ../preseeds/
+#      chdir: isos

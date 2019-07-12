@@ -1,0 +1,76 @@
+---
+- name: Install vPloy dependencies
+  hosts: localhost
+  connection: local
+  vars_files:
+    - ../config/dependencies.yml
+  tasks:
+  - name: Terraform - Download and Extract Terraform {{ dependencies.terraform_version }}
+    unarchive:
+      src: https://releases.hashicorp.com/terraform/{{ dependencies.terraform_version }}/terraform_{{ dependencies.terraform_version }}_linux_amd64.zip
+      dest: /usr/bin
+      remote_src: yes
+      creates: /usr/bin/terraform
+
+  - name: Terraform - Set binary executable
+    file:
+      path: /usr/bin/terraform
+      owner: root
+      group: root
+      mode: 0755
+
+  - name: Packer - Download and Extract Packer {{ dependencies.packer_version }}
+    unarchive:
+      src: https://releases.hashicorp.com/packer/{{ dependencies.packer_version }}/packer_{{ dependencies.packer_version }}_linux_amd64.zip
+      dest: /usr/bin
+      remote_src: yes
+      creates: /usr/bin/packer
+
+  - name: Packer - Set binary executable
+    file:
+      path: /usr/bin/packer
+      owner: root
+      group: root
+      mode: 0755
+
+  - name: Packer - Download Packer vSphere Clone {{ dependencies.packer_vsphere_version }}
+    get_url:
+      url: https://github.com/jetbrains-infra/packer-builder-vsphere/releases/download/v{{ dependencies.packer_vsphere_version }}/packer-builder-vsphere-clone.linux
+      dest: /usr/bin/packer-builder-vsphere-clone.linux
+      mode: 0755
+      owner: root
+      group: root
+
+  - name: Packer - Download Packer vSphere Iso {{ dependencies.packer_vsphere_version }}
+    get_url:
+      url: https://github.com/jetbrains-infra/packer-builder-vsphere/releases/download/v{{ dependencies.packer_vsphere_version }}/packer-builder-vsphere-iso.linux
+      dest: /usr/bin/packer-builder-vsphere-iso.linux
+      mode: 0755
+      owner: root
+      group: root
+
+  - name: Iso Builder - Install Gen Iso Image Package
+    apt:
+      name: genisoimage
+      state: present
+      install_recommends: no
+
+  - name: Pip - Install Pyvmomi
+    pip:
+      name: pyvmomi
+      state: present
+      
+  - name: Pip - Install NetAddr
+    pip:
+      name: netaddr
+      state: present
+
+  - name: Pip - Install Ansible Tower CLI
+    pip:
+      name: ansible-tower-cli
+      state: present
+      
+  - name: Pip - Install jmespath
+    pip:
+      name: jmespath
+      state: present

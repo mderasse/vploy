@@ -1,0 +1,17 @@
+---
+- name: Download ISOs
+  hosts: localhost
+  connection: local
+  vars_files:
+  - ../config/dependencies.yml
+  tasks:
+  - name: Isos - Creates directory
+    file:
+      path: ../generated/isos
+      state: directory
+
+  - name: Isos - Download Debian {{ dependencies.debian_version }}
+    get_url:
+      url: https://cdimage.debian.org/debian-cd/{{ dependencies.debian_version }}/amd64/iso-cd/debian-{{ dependencies.debian_version }}-amd64-netinst.iso
+      dest: ../generated/isos/debian10.iso
+      checksum: 'sha1:https://cdimage.debian.org/debian-cd/{{ dependencies.debian_version }}/amd64/iso-cd/SHA1SUMS'

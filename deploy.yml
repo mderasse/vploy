@@ -1,0 +1,20 @@
+---
+- name: Deploy vPloy
+  hosts: localhost
+  connection: local
+
+- import_playbook: playbooks/01-dependencies.yml
+  tags:
+  - dependencies
+
+- import_playbook: playbooks/02-keys.yml
+  tags:
+  - keys
+
+- import_playbook: playbooks/03-isos.yml
+  tags:
+  - isos
+
+- import_playbook: playbooks/04-preseed.yml
+  tags:
+  - preseed

@@ -1,4 +1,7 @@
 ---
+# Vars that could be override:
+#   - regen_vm_template: If Set to true, Isos will re-downloaded, preseed regenerated and packer templates relaunched
+
 - name: Deploy vPloy
   hosts: localhost
   connection: local
@@ -12,9 +15,13 @@
   - keys
 
 - import_playbook: playbooks/03-isos.yml
+  vars:
+    regen_vm_template: false
   tags:
   - isos
 
 - import_playbook: playbooks/04-preseed.yml
+  vars:
+    regen_vm_template: false
   tags:
   - preseed

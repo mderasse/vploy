@@ -2,6 +2,9 @@
 - name: Download ISOs
   hosts: localhost
   connection: local
+  gather_facts: no
+  vars:
+    regen_vm_template: true
   vars_files:
   - ../config/dependencies.yml
   tasks:
@@ -10,8 +13,17 @@
       path: ../generated/isos
       state: directory
 
-  - name: Isos - Download Debian {{ dependencies.debian_version }}
+  # Manage Debian 10 ISO
+  - name: Isos - Check Debian 10 ISO
+    stat: 
+      path: ../generated/isos/debian10.iso
+    register: debian10_iso_stat
+
+  - name: Isos - Download Debian {{ dependencies.debian10_version }}
     get_url:
-      url: https://cdimage.debian.org/debian-cd/{{ dependencies.debian_version }}/amd64/iso-cd/debian-{{ dependencies.debian_version }}-amd64-netinst.iso
+      url: https://cdimage.debian.org/debian-cd/{{ dependencies.debian10_version }}/amd64/iso-cd/debian-{{ dependencies.debian10_version }}-amd64-netinst.iso
       dest: ../generated/isos/debian10.iso
-      checksum: 'sha1:https://cdimage.debian.org/debian-cd/{{ dependencies.debian_version }}/amd64/iso-cd/SHA1SUMS'
+      checksum: 'sha1:https://cdimage.debian.org/debian-cd/{{ dependencies.debian10_version }}/amd64/iso-cd/SHA1SUMS'
+      force: yes
+    when: regen_vm_template == True or debian10_iso_stat.stat.exists == False
+  # End Manage Debian 10 ISO

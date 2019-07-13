@@ -2,6 +2,7 @@
 - name: Generate Keys
   hosts: localhost
   connection: local
+  gather_facts: no
   tasks:
   - name: SSH Keys - Creates directory
     file:
@@ -12,9 +13,10 @@
     shell:
       cmd: ssh-keygen -q -t ed25519 -a 100 -f ../generated/keys/ansible -C "" -N ""
       creates: ../generated/keys/ansible
-      
-  - name: SSH Keys - Generate Bastion Key
+    register: sshkey_ansible
+
+  - name: SSH Keys - Generate Ssh Gateway Key
     shell:
-      cmd: ssh-keygen -q -t ed25519 -a 100 -f ../generated/keys/bastion -C "" -N ""
-      creates: ../generated/keys/bastion
+      cmd: ssh-keygen -q -t ed25519 -a 100 -f ../generated/keys/sshgateway -C "" -N ""
+      creates: ../generated/keys/sshgateway
 

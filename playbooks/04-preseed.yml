@@ -6,8 +6,24 @@
   vars:
     regen_vm_template: true
   vars_files:
-    - ../config/dependencies.yml
+  - ../config/infra/template_factory/network.yml
   tasks:
+  # Load var file base on the first item existing
+  # Here we are in a template_factory context ...
+  - name: Preseed - Load Locale Var File
+    include_vars: "{{ lookup('first_found', possible_locale) }}"
+    vars:
+      possible_locale:
+        - ../config/infra/template_factory/locale.yml
+        - ../config/infra/locale.yml # Default
+
+  - name: Preseed - Load Dns Var File
+    include_vars: "{{ lookup('first_found', possible_locale) }}"
+    vars:
+      possible_locale:
+        - ../config/infra/template_factory/dns.yml
+        - ../config/infra/dns.yml # Default
+
   # Generate Debian 10 Preseed
   - name: Preseed Debian 10 - Creates directory
     file:
@@ -35,7 +51,39 @@
 
   - name: Preseed Debian 10 - Build Preseed ISOs
     shell:
-      cmd: genisoimage -l -o debian10_preseed.iso ../generated/preseed/debian10/
+      cmd: genisoimage -l -o debian10_preseed.iso ../preseed/debian10/
       chdir: ../generated/isos
     when: regen_vm_template == True or debian10_preseed_stat.stat.exists == False
   # End of Debian 10 Preseed
+
+  # Generate Ubuntu Preseed
+  - name: Preseed Ubuntu - Creates directory
+    file:
+      path: ../generated/preseed/ubuntu
+      state: directory
+
+  - name: Preseed Ubuntu - Copy Ansible Key
+    shell:
+      cmd: cp ../generated/keys/ansible.pub ../generated/preseed/ubuntu/ansible.pub
+
+  - name: Preseed Ubuntu - Copy Init
+    shell:
+      cmd: cp files/ubuntu_init.sh ../generated/preseed/ubuntu/init.sh
+
+  - name: Preseed Ubuntu - Generate Preseed File
+    template:
+      src: templates/ubuntu_preseed.j2
+      dest: ../generated/preseed/ubuntu/ubuntu_preseed.cfg
+      mode: 0644
+
+  - name: Preseed Ubuntu - Check Ubuntu Preseed Iso
+    stat: 
+      path: ../generated/isos/ubuntu_preseed.iso
+    register: ubuntu_preseed_stat
+
+  - name: Preseed Ubuntu - Build Preseed ISOs
+    shell:
+      cmd: genisoimage -l -o ubuntu_preseed.iso ../preseed/ubuntu/
+      chdir: ../generated/isos
+    when: regen_vm_template == True or ubuntu_preseed_stat.stat.exists == False
+  # End of Ubuntu Preseed

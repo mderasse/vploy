@@ -1,0 +1,5 @@
+---
+- name: Prepare the vCenter by creating Network / Pools / Directory ...
+  hosts: localhost
+  connection: local
+  gather_facts: no

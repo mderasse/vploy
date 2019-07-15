@@ -14,7 +14,7 @@
       state: directory
 
   # Manage Debian 10 ISO
-  - name: Isos - Check Debian 10 ISO
+  - name: Isos - Check Debian {{ dependencies.debian10_version }} ISO
     stat: 
       path: ../generated/isos/debian10.iso
     register: debian10_iso_stat
@@ -26,4 +26,18 @@
       checksum: 'sha1:https://cdimage.debian.org/debian-cd/{{ dependencies.debian10_version }}/amd64/iso-cd/SHA1SUMS'
       force: yes
     when: regen_vm_template == True or debian10_iso_stat.stat.exists == False
+  # End Manage Debian 10 ISO
+
+  # Manage Ubuntu ISO
+  - name: Isos - Check Ubuntu {{ dependencies.ubuntu_version }} ISO
+    stat: 
+      path: ../generated/isos/ubuntu.iso
+    register: ubuntu_iso_stat
+
+  - name: Isos - Download Ubuntu {{ dependencies.ubuntu_version }}
+    get_url:
+      url: http://cdimage.ubuntu.com/releases/{{ dependencies.ubuntu_version }}/release/ubuntu-{{ dependencies.ubuntu_version }}-server-amd64.iso
+      dest: ../generated/isos/ubuntu.iso
+      force: yes
+    when: regen_vm_template == True or ubuntu_iso_stat.stat.exists == False
   # End Manage Debian 10 ISO

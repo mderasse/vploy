@@ -1,0 +1,7 @@
+---
+- name: Generate Template using Packer
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    regen_vm_template: true

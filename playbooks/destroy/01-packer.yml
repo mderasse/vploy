@@ -1,0 +1,61 @@
+---
+- name: Destroy  Packer Templates
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars_files:
+    - ../../config/infra/vsphere.yml
+    - ../../config/infra/passwords.yml
+  tasks:
+
+    # Delete Debian 10 Template
+    - name: Debian 10 Template - Retrieve Information about the Template
+      vmware_vm_facts:
+        hostname: "{{ vsphere.address }}"
+        username: "{{ vsphere.username }}"
+        password: "{{ password.vsphere }}"
+        validate_certs: "{{ vsphere.allow_unverified_ssl }}"
+        vm_type: "template"
+      register: vmfacts
+
+    - name: Debian 10 Template - Search debian10
+      set_fact:
+        template_debian10: "{{ vmfacts.virtual_machines | json_query(query) }}" 
+      vars:
+        query: "[?guest_name=='debian10']"
+
+    - name: Debian 10 Template - Delete existing Template
+      vmware_guest:
+        hostname: "{{ vsphere.address }}"
+        username: "{{ vsphere.username }}"
+        password: "{{ password.vsphere }}"
+        validate_certs: "{{ vsphere.allow_unverified_ssl }}"
+        name: "debian10"
+        state: absent
+    # End of delete Debian 10 Template
+
+    # Delete Ubuntu Template
+    - name: Ubuntu Template - Retrieve Information about the Template
+      vmware_vm_facts:
+        hostname: "{{ vsphere.address }}"
+        username: "{{ vsphere.username }}"
+        password: "{{ password.vsphere }}"
+        validate_certs: "{{ vsphere.allow_unverified_ssl }}"
+        vm_type: "template"
+      register: vmfacts
+
+    - name: Ubuntu Template - Search ubuntu
+      set_fact:
+        template_ubuntu: "{{ vmfacts.virtual_machines | json_query(query) }}" 
+      vars:
+        query: "[?guest_name=='ubuntu']"
+
+    - name: Ubuntu Template - Delete existing Template
+      vmware_guest:
+        hostname: "{{ vsphere.address }}"
+        username: "{{ vsphere.username }}"
+        password: "{{ password.vsphere }}"
+        validate_certs: "{{ vsphere.allow_unverified_ssl }}"
+        name: "ubuntu"
+        state: absent
+    # End of delete Ubuntu Template

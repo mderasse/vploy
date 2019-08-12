@@ -1,0 +1,23 @@
+---
+- name: Delete Preseeds
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+
+    - name: Delete Preseeds - List Preseed ISO to deletes
+      find:
+        paths: ../../generated/isos
+        patterns: "*_preseed.iso"
+      register: preseeds_to_delete
+
+    - name: Delete Preseeds - Delete Preseed ISOs
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      with_items: "{{ preseeds_to_delete.files }}"
+
+    - name: Delete Preseeds - Delete Preseed directory
+      file:
+        path: ../../generated/preseed
+        state: absent

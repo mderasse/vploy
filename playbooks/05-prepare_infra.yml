@@ -1,5 +1,68 @@
 ---
-- name: Prepare the vCenter by creating Network / Pools / Directory ...
+- name: Prepare the vSphere by creating Network / Pools / Directory ...
   hosts: localhost
   connection: local
   gather_facts: no
+  vars_files:
+    - ../config/infra/vsphere.yml
+    - ../config/infra/passwords.yml
+  vars:
+    regen_vm_template: true
+  tasks:
+
+  # We have to use count because terraform taint doesn't accept wildcard yet
+  - name: Prepare Infra - Taint Terraform preseed ISOs
+    shell:
+      cmd: terraform taint vsphere_file.preseed_iso_upload[{{item}}]
+      chdir: ../terraform/prepare
+    with_sequence: count=4
+    when: regen_vm_template == True
+
+  # List Infrastructures and their vlans
+  - name: Prepare Infra - List infrastructure directory
+    find:
+      paths: ../config/infra
+      file_type: directory
+      excludes: 'template_factory'
+    register: infras
+
+  - name: Prepare Infra - Load Network Config for each Infrastructures
+    include_vars: 
+      file: "../config/infra/{{ item }}/network.yml"
+      name: "{{ item }}"
+    with_items: "{{ infras.files | map(attribute='path') | map('basename') | list }}"
+
+  - name: Prepare Infra - Initialize vlan list
+    set_fact:
+      vlans: []
+
+  - name: Prepare Infra - Add vlan to the vlan list
+    set_fact:
+      vlans: "{{ vlans + [ lookup('vars', item).network.vlan ] }}"
+    with_items: "{{ infras.files | map(attribute='path') | map('basename') | list }}"
+
+  # List isos to upload
+  - name: Prepare Infra - List isos to upload
+    find:
+      paths: ../generated/isos/
+      file_type: file
+    register: isos
+
+  # Ansible is not yet able to handle terraform type like List<number>
+  - name: Prepare Infra - Launch Terraform Infrastructure Preparation
+    terraform:
+      project_path: ../terraform/prepare
+      state: present
+      force_init: yes
+      variables:
+        vsphere-address: "{{ vsphere.address }}"
+        vsphere-username: "{{ vsphere.username }}"
+        vsphere-password: "{{ password.vsphere }}"
+        vsphere-allow_unverified_ssl: "{{ vsphere.allow_unverified_ssl | lower }}"
+        vsphere-datacenter: "{{ vsphere.datacenter }}"
+        vsphere-cluster: "{{ vsphere.cluster }}"
+        vsphere-network-dvs: "{{ vsphere.network.dvs }}"
+        vsphere-datastore-iso: "{{ vsphere.datastore.iso }}"
+        infra-names: "{{ infras.files | map(attribute='path') | map('basename') | join(',') }}"
+        infra-vlans: "{{ vlans | join(',') }}"
+        list-isos: "{{ isos.files | map(attribute='path') | map('basename') | join(',') }}"

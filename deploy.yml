@@ -5,7 +5,8 @@
 - name: Deploy vPloy
   hosts: localhost
   connection: local
-
+  gather_facts: no
+  
 - import_playbook: playbooks/01-dependencies.yml
   tags:
   - dependencies
@@ -25,3 +26,15 @@
     regen_vm_template: false
   tags:
   - preseed
+
+- import_playbook: playbooks/05-prepare_infra.yml
+  vars:
+    regen_vm_template: false
+  tags:
+  - prepare_infra
+
+- import_playbook: playbooks/06-packer.yml
+  vars:
+    regen_vm_template: false
+  tags:
+  - packer

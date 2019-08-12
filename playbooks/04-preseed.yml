@@ -11,18 +11,16 @@
   # Load var file base on the first item existing
   # Here we are in a template_factory context ...
   - name: Preseed - Load Locale Var File
-    include_vars: "{{ lookup('first_found', possible_locale) }}"
-    vars:
-      possible_locale:
-        - ../config/infra/template_factory/locale.yml
-        - ../config/infra/locale.yml # Default
+    include_vars: "{{ item }}"
+    with_first_found:
+      - ../config/infra/template_factory/locale.yml
+      - ../config/infra/locale.yml # Default
 
   - name: Preseed - Load Dns Var File
-    include_vars: "{{ lookup('first_found', possible_locale) }}"
-    vars:
-      possible_locale:
-        - ../config/infra/template_factory/dns.yml
-        - ../config/infra/dns.yml # Default
+    include_vars: "{{ item }}"
+    with_first_found:
+      - ../config/infra/template_factory/dns.yml
+      - ../config/infra/dns.yml # Default
 
   # Generate Debian 10 Preseed
   - name: Preseed Debian 10 - Creates directory

@@ -1,0 +1,74 @@
+{
+    "builders": [
+      {
+        "type":                  "vsphere-iso",
+        "vcenter_server":        "{{user `vsphere-address`}}",
+        "username":              "{{user `vsphere-username`}}",
+        "password":              "{{user `vsphere-password`}}",
+  
+        "datacenter":            "{{user `vsphere-datacenter`}}",
+        "cluster":               "{{user `vsphere-cluster`}}",
+        "folder":                "templates",
+        "network":               "{{user `vsphere-network-public-pg`}}",
+        "resource_pool":         "templates",
+        "datastore":             "{{user `vsphere-datastore-template`}}",
+  
+        "iso_paths":            [
+          "{{user `vsphere-os-iso`}}",
+          "{{user `vsphere-preseed-iso`}}"
+        ],
+  
+        "vm_name":               "debian10",
+        "guest_os_type":         "ubuntu64Guest",
+  
+        "ssh_username":          "ansible",
+        "ssh_private_key_file":  "../generated/keys/ansible",
+  
+        "CPUs":                  1,
+        "CPU_limit":             -1,
+        "RAM":                   1024,
+        "RAM_reserve_all":       true,
+        "disk_controller_type":  "pvscsi",
+        "disk_size":             30000,
+        "disk_thin_provisioned": true,
+  
+        "network_card":         "vmxnet3",
+  
+  
+        "convert_to_template":  true,
+        "create_snapshot":      true,
+  
+        "shutdown_command":     "echo '{{user `template-password`}}' | sudo -S shutdown -P now",
+        "shutdown_timeout":     "10m",
+  
+        "boot_wait": "10s",
+        "boot_command": [
+          "<esc><wait>",
+          "install ",
+          "auto ",
+          "file=/cdrom2/debian10_preseed.cfg ",
+          "debian-installer=en_US ",
+          "locale=en_US ",
+          "keymap=fr ",
+          "priority=critical ",
+          "passwd/root-password-again={{user `template-password`}} ",
+          "passwd/root-password={{user `template-password`}} ",
+          "passwd/user-password={{user `template-password`}} ",
+          "passwd/user-password-again={{user `template-password`}} ",
+          "<enter>",
+          "<wait10>",
+          "<leftAltOn><f2><leftAltOff>",
+          "<enter>",
+          "mkdir /cdrom2-tmp<enter>",
+          "mount /dev/sr1 /cdrom2-tmp<enter>",
+          "cp -R /cdrom2-tmp /cdrom2<enter>",
+          "umount /cdrom2-tmp<enter>",
+          "rm /dev/sr1<enter>",
+          "debian-installer<enter>"
+        ],
+        "boot_order": "disk,cdrom"
+      }
+    ],
+    "provisioners": []
+  }
+  

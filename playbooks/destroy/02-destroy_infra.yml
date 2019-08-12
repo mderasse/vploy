@@ -1,0 +1,27 @@
+---
+- name: Destroy the vSphere by deleting Network / Pools / Directory ...
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars_files:
+    - ../../config/infra/vsphere.yml
+    - ../../config/infra/passwords.yml
+  tasks:
+
+ 
+  - name: Destroy Infra - Launch Terraform Infrastructure Destruction
+    terraform:
+      project_path: ../../terraform/prepare
+      state: absent
+      variables:
+        vsphere-address: "{{ vsphere.address }}"
+        vsphere-username: "{{ vsphere.username }}"
+        vsphere-password: "{{ password.vsphere }}"
+        vsphere-allow_unverified_ssl: "{{ vsphere.allow_unverified_ssl | lower }}"
+        vsphere-datacenter: "{{ vsphere.datacenter }}"
+        vsphere-cluster: "{{ vsphere.cluster }}"
+        vsphere-network-dvs: "{{ vsphere.network.dvs }}"
+        vsphere-datastore-iso: "{{ vsphere.datastore.iso }}"
+        infra-names: ""
+        infra-vlans: ""
+        list-isos: ""

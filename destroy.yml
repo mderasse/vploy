@@ -1,0 +1,25 @@
+---
+- name: Destroy vPloy
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+- import_playbook: playbooks/destroy/01-packer.yml
+  tags:
+  - packer
+
+- import_playbook: playbooks/destroy/02-destroy_infra.yml
+  tags:
+  - destroy_infra
+
+- import_playbook: playbooks/destroy/03-preseed.yml
+  tags:
+  - preseed
+
+- import_playbook: playbooks/destroy/04-isos.yml
+  tags:
+  - isos
+
+- import_playbook: playbooks/destroy/05-keys.yml
+  tags:
+  - keys

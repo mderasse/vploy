@@ -1,0 +1,6 @@
+locale:
+  language: en
+  country: FR
+  locale: en_US.UTF-8
+  keyboard: fr(latin9)
+  timezone: Europe/Paris

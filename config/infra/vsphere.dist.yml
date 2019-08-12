@@ -1,0 +1,12 @@
+vsphere:
+  address: xxxxxx
+  username: admin
+  allow_unverified_ssl: false
+  datacenter: xxxxx
+  cluster: xxxxx
+  network:
+    dvs: xxxxxxxxx
+    public_pg: xxxx
+  datastore:
+    iso: xxxxx
+    template: xxxx

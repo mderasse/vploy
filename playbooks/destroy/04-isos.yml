@@ -1,0 +1,7 @@
+---
+- name: Delete ISOs
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+  

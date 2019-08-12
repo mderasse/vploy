@@ -57,6 +57,19 @@ d-i partman/mount_style select uuid
 d-i partman-basicfilesystems/no_swap boolean false
 
 ### Apt setup
+d-i apt-setup/non-free boolean true
+d-i apt-setup/contrib boolean true
+d-i apt-setup/local0/source boolean true
+
+d-i apt-setup/cdrom/set-first boolean false
+d-i apt-setup/cdrom/set-next boolean false   
+d-i apt-setup/cdrom/set-failed boolean false
+
+d-i mirror/country string manual
+d-i mirror/http/hostname string httpredir.debian.org
+d-i mirror/http/directory string /debian
+d-i mirror/http/proxy string
+
 d-i apt-setup/services-select multiselect security, updates, backports
 d-i apt-setup/security_host string security.debian.org
 

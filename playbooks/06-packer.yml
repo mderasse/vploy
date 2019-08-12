@@ -1,7 +1,104 @@
 ---
-- name: Generate Template using Packer
+- name: Generate Template using Packer 
   hosts: localhost
   connection: local
   gather_facts: no
+  vars_files:
+    - ../config/infra/vsphere.yml
+    - ../config/infra/passwords.yml
   vars:
     regen_vm_template: true
+  tasks:
+    
+    # Generate Debian 10 Template
+    - name: Debian 10 Template - Retrieve Information about the Template
+      vmware_vm_facts:
+        hostname: "{{ vsphere.address }}"
+        username: "{{ vsphere.username }}"
+        password: "{{ password.vsphere }}"
+        validate_certs: "{{ vsphere.allow_unverified_ssl }}"
+        vm_type: "template"
+      register: vmfacts
+
+    - name: Debian 10 Template - Search debian10
+      set_fact:
+        template_debian10: "{{ vmfacts.virtual_machines | json_query(query) }}" 
+      vars:
+        query: "[?guest_name=='debian10']"
+
+    - name: Debian 10 Template - Delete existing Template
+      vmware_guest:
+        hostname: "{{ vsphere.address }}"
+        username: "{{ vsphere.username }}"
+        password: "{{ password.vsphere }}"
+        validate_certs: "{{ vsphere.allow_unverified_ssl }}"
+        name: "debian10"
+        state: absent
+      when: regen_vm_template == True
+
+    - name: Debian 10 Template - Launch Packer
+      shell:
+        cmd: |
+          packer build \
+          -var 'vsphere-address={{ vsphere.address }}' \
+          -var 'vsphere-username={{ vsphere.username }}' \
+          -var 'vsphere-password={{ password.vsphere }}' \
+          -var 'vsphere-datacenter={{ vsphere.datacenter }}' \
+          -var 'vsphere-cluster={{ vsphere.cluster }}' \
+          -var 'vsphere-network-public-pg={{ vsphere.network.public_pg }}' \
+          -var 'vsphere-datastore-template={{ vsphere.datastore.template }}' \
+          -var 'vsphere-os-iso=[{{ vsphere.datastore.iso }}] /isos/debian10.iso' \
+          -var 'vsphere-preseed-iso=[{{ vsphere.datastore.iso }}] /isos/debian10_preseed.iso' \
+          -var 'template-password={{ password.template }}' \
+          -force \
+          debian10.json
+        chdir: ../packer
+      when: (template_debian10|length==0) or regen_vm_template == True
+    # End of generate Debian 10 Template
+
+
+    # Generate Ubuntu Template
+    - name: Ubuntu Template - Retrieve Information about the Template
+      vmware_vm_facts:
+        hostname: "{{ vsphere.address }}"
+        username: "{{ vsphere.username }}"
+        password: "{{ password.vsphere }}"
+        validate_certs: "{{ vsphere.allow_unverified_ssl }}"
+        vm_type: "template"
+      register: vmfacts
+
+    - name: Ubuntu Template - Search ubuntu
+      set_fact:
+        template_ubuntu: "{{ vmfacts.virtual_machines | json_query(query) }}" 
+      vars:
+        query: "[?guest_name=='ubuntu']"
+
+    - name: Ubuntu Template - Delete existing Template
+      vmware_guest:
+        hostname: "{{ vsphere.address }}"
+        username: "{{ vsphere.username }}"
+        password: "{{ password.vsphere }}"
+        validate_certs: "{{ vsphere.allow_unverified_ssl }}"
+        name: "ubuntu"
+        state: absent
+      when: regen_vm_template == True
+
+    - name: Ubuntu Template - Launch Packer
+      shell:
+        cmd: |
+          packer build \
+          -var 'vsphere-address={{ vsphere.address }}' \
+          -var 'vsphere-username={{ vsphere.username }}' \
+          -var 'vsphere-password={{ password.vsphere }}' \
+          -var 'vsphere-datacenter={{ vsphere.datacenter }}' \
+          -var 'vsphere-cluster={{ vsphere.cluster }}' \
+          -var 'vsphere-network-public-pg={{ vsphere.network.public_pg }}' \
+          -var 'vsphere-datastore-template={{ vsphere.datastore.template }}' \
+          -var 'vsphere-os-iso=[{{ vsphere.datastore.iso }}] /isos/ubuntu.iso' \
+          -var 'vsphere-preseed-iso=[{{ vsphere.datastore.iso }}] /isos/ubuntu_preseed.iso' \
+          -var 'template-password={{ password.template }}' \
+          -force \
+          ubuntu.json
+        chdir: ../packer
+      when: (template_ubuntu|length==0) or regen_vm_template == True
+      # End of generate Ubuntu Template

@@ -38,3 +38,9 @@
     regen_vm_template: false
   tags:
   - packer
+
+- import_playbook: playbooks/07-deploy_infra.yml
+  vars:
+    regen_vm_template: false
+  tags:
+  - deploy_infra

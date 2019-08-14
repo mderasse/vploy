@@ -1,0 +1,17 @@
+
+# Management is a special infrastructure that have to be deployed first
+
+- name: Management - Launch Terraform Management
+  terraform:
+    project_path: ../terraform/infra/management
+    state: present
+    force_init: yes
+    variables:
+      vsphere-address: "{{ vsphere.address }}"
+      vsphere-username: "{{ vsphere.username }}"
+      vsphere-password: "{{ password.vsphere }}"
+      vsphere-allow_unverified_ssl: "{{ vsphere.allow_unverified_ssl | lower }}"
+      vsphere-datacenter: "{{ vsphere.datacenter }}"
+      vsphere-cluster: "{{ vsphere.cluster }}"
+      vsphere-network-pg-public: "{{ vsphere.network.public_pg }}"
+      infra-name: "management"

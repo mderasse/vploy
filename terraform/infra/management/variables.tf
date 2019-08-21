@@ -41,3 +41,28 @@ variable "infra-name" {
   type        = "string"
   description = "Name of infrastructure"
 }
+
+variable "dns-domain" {
+  type        = "string"
+  description = "Network Domain name"
+}
+
+variable "dns-nameservers" {
+  type        = "string"
+  description = "List of DNS Server separate by a ,"
+}
+
+variable "network-public-gateway" {
+  type        = "string"
+  description = "Gateway IP"
+}
+
+variable "network-public-ip" {
+  type        = "string"
+  description = "Public IP"
+}
+
+variable "network-priv-range" {
+  type        = "string"
+  description = "Private Network CIDR"
+}

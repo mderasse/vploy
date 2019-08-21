@@ -1,9 +1,16 @@
 
 # Management is a special infrastructure that have to be deployed first
+- name: Management - Set Infra Name Fact
+  set_fact:
+     infra_name: management
 
-- name: Management - Launch Terraform Management
+
+- name: "{{ infra_name }} - Load Configs"
+  include: infra/_config.yml
+
+- name: "{{ infra_name }} - Launch Terraform"
   terraform:
-    project_path: ../terraform/infra/management
+    project_path: ../terraform/infra/{{ infra_name }}
     state: present
     force_init: yes
     variables:
@@ -14,4 +21,9 @@
       vsphere-datacenter: "{{ vsphere.datacenter }}"
       vsphere-cluster: "{{ vsphere.cluster }}"
       vsphere-network-pg-public: "{{ vsphere.network.public_pg }}"
-      infra-name: "management"
+      infra-name: "{{ infra_name }}"
+      dns-domain: "{{ dns.domain }}"
+      dns-nameservers: "{{ dns.nameservers | join(',') }}"
+      network-public-gateway: "{{ network.gateway }}"
+      network-public-ip: "{{ network.public_ip }}"
+      network-priv-range: "{{ network.private_range }}"

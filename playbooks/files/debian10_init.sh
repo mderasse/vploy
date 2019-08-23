@@ -19,6 +19,3 @@ echo "net.ipv6.conf.all.disable_ipv6 = 1" > /etc/sysctl.d/ipv6.conf
 
 # Clean APT
 sed -i 's/^deb cdrom:/# deb cdrom:/g' /etc/apt/sources.list
-apt-get -y autoremove
-apt-get -y clean
-rm -rf /var/lib/apt/lists/*

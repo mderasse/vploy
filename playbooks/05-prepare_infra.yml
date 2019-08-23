@@ -13,7 +13,7 @@
   # We have to use count because terraform taint doesn't accept wildcard yet
   - name: Prepare Infra - Taint Terraform preseed ISOs
     shell:
-      cmd: terraform taint vsphere_file.preseed_iso_upload[{{item}}]
+      cmd: terraform taint vsphere_file.preseed_iso_upload[{{item | int - 1}}]
       chdir: ../terraform/prepare
     with_sequence: count=4
     when: regen_vm_template == True

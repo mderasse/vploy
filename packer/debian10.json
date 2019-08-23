@@ -69,6 +69,17 @@
         "boot_order": "disk,cdrom"
       }
     ],
-    "provisioners": []
+    "provisioners": [
+        {
+            "type": "shell",
+            "script": "upgradeApt.sh",
+            "execute_command": "echo '{{user `template-password`}}' | sudo -S bash {{.Path}}"
+        },
+        {
+            "type": "shell",
+            "script": "cleanTemplate.sh",
+            "execute_command": "echo '{{user `template-password`}}' | sudo -S bash {{.Path}}"
+        }
+    ]
   }
   

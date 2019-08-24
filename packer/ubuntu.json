@@ -81,6 +81,12 @@
             "type": "shell",
             "script": "cleanTemplate.sh",
             "execute_command": "echo '{{user `template-password`}}' | sudo -S bash {{.Path}}"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "echo '{{user `template-password`}}' | sudo -S rm /etc/netplan/*"
+            ]
         }
     ]
   }

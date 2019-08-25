@@ -1,9 +1,8 @@
 
 # Management is a special infrastructure that have to be deployed first
-- name: Management - Set Infra Name Fact
+- name: "{{ item }} - Set Infra Name Fact"
   set_fact:
-     infra_name: management
-
+     infra_name: "{{ item }}"
 
 - name: "{{ infra_name }} - Load Configs"
   include: infra/_config.yml

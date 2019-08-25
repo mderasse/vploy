@@ -100,3 +100,179 @@ resource "vsphere_virtual_machine" "gateway" {
     }
   }
 }
+
+#===============================================================================
+# Bastion deployement
+#===============================================================================
+resource "vsphere_virtual_machine" "bastion" {
+  name                        = "bastion.${var.infra-name}"
+  resource_pool_id            = "${data.vsphere_resource_pool.resource-pool.id}"
+  datastore_id                = "${data.vsphere_datastore.datastore_pcc-000020.id}"
+  folder                      = "/${var.vsphere-datacenter}/vm/${var.infra-name}"
+  num_cpus                    = 2
+  memory                      = 2048
+  memory_reservation          = 2048
+  guest_id                    = "ubuntu64Guest"
+
+  disk {
+    label = "disk0"
+    size  = "30"
+  }
+
+  network_interface {
+    network_id   = "${data.vsphere_network.portgroup_private.id}"
+    adapter_type = "vmxnet3"
+  }
+
+  clone {
+    template_uuid = "${data.vsphere_virtual_machine.template_ubuntu.id}"
+
+    customize {
+      network_interface {
+        ipv4_address = "${cidrhost(var.network-priv-range, 2)}"
+        ipv4_netmask = "${element(split("/", var.network-priv-range),1)}"
+      }
+
+      linux_options {
+        host_name = "bastion"
+        domain    = "${var.dns-domain}"
+      }
+
+      ipv4_gateway    = "${cidrhost(var.network-priv-range, 1)}"
+      dns_suffix_list = ["${var.dns-domain}"]
+      dns_server_list = "${split(",", var.dns-nameservers)}"
+    }
+  }
+}
+
+#===============================================================================
+# AWX deployement
+#===============================================================================
+resource "vsphere_virtual_machine" "awx" {
+  name                        = "awx.${var.infra-name}"
+  resource_pool_id            = "${data.vsphere_resource_pool.resource-pool.id}"
+  datastore_id                = "${data.vsphere_datastore.datastore_pcc-000020.id}"
+  folder                      = "/${var.vsphere-datacenter}/vm/${var.infra-name}"
+  num_cpus                    = 4
+  memory                      = 8192
+  memory_reservation          = 8192
+  guest_id                    = "ubuntu64Guest"
+
+  disk {
+    label = "disk0"
+    size  = "30"
+  }
+
+  network_interface {
+    network_id   = "${data.vsphere_network.portgroup_private.id}"
+    adapter_type = "vmxnet3"
+  }
+
+  clone {
+    template_uuid = "${data.vsphere_virtual_machine.template_ubuntu.id}"
+
+    customize {
+      network_interface {
+        ipv4_address = "${cidrhost(var.network-priv-range, 3)}"
+        ipv4_netmask = "${element(split("/", var.network-priv-range),1)}"
+      }
+
+      linux_options {
+        host_name = "awx"
+        domain    = "${var.dns-domain}"
+      }
+
+      ipv4_gateway    = "${cidrhost(var.network-priv-range, 1)}"
+      dns_suffix_list = ["${var.dns-domain}"]
+      dns_server_list = "${split(",", var.dns-nameservers)}"
+    }
+  }
+}
+
+#===============================================================================
+# LDAP deployement
+#===============================================================================
+resource "vsphere_virtual_machine" "ldap" {
+  name                        = "ldap.${var.infra-name}"
+  resource_pool_id            = "${data.vsphere_resource_pool.resource-pool.id}"
+  datastore_id                = "${data.vsphere_datastore.datastore_pcc-000020.id}"
+  folder                      = "/${var.vsphere-datacenter}/vm/${var.infra-name}"
+  num_cpus                    = 4
+  memory                      = 4096
+  memory_reservation          = 4096
+  guest_id                    = "ubuntu64Guest"
+
+  disk {
+    label = "disk0"
+    size  = "30"
+  }
+
+  network_interface {
+    network_id   = "${data.vsphere_network.portgroup_private.id}"
+    adapter_type = "vmxnet3"
+  }
+
+  clone {
+    template_uuid = "${data.vsphere_virtual_machine.template_ubuntu.id}"
+
+    customize {
+      network_interface {
+        ipv4_address = "${cidrhost(var.network-priv-range, 4)}"
+        ipv4_netmask = "${element(split("/", var.network-priv-range),1)}"
+      }
+
+      linux_options {
+        host_name = "ldap"
+        domain    = "${var.dns-domain}"
+      }
+
+      ipv4_gateway    = "${cidrhost(var.network-priv-range, 1)}"
+      dns_suffix_list = ["${var.dns-domain}"]
+      dns_server_list = "${split(",", var.dns-nameservers)}"
+    }
+  }
+}
+
+#===============================================================================
+# Jenkins deployement
+#===============================================================================
+resource "vsphere_virtual_machine" "jenkins" {
+  name                        = "jenkins.${var.infra-name}"
+  resource_pool_id            = "${data.vsphere_resource_pool.resource-pool.id}"
+  datastore_id                = "${data.vsphere_datastore.datastore_pcc-000020.id}"
+  folder                      = "/${var.vsphere-datacenter}/vm/${var.infra-name}"
+  num_cpus                    = 4
+  memory                      = 8192
+  memory_reservation          = 8192
+  guest_id                    = "ubuntu64Guest"
+
+  disk {
+    label = "disk0"
+    size  = "30"
+  }
+
+  network_interface {
+    network_id   = "${data.vsphere_network.portgroup_private.id}"
+    adapter_type = "vmxnet3"
+  }
+
+  clone {
+    template_uuid = "${data.vsphere_virtual_machine.template_ubuntu.id}"
+
+    customize {
+      network_interface {
+        ipv4_address = "${cidrhost(var.network-priv-range, 5)}"
+        ipv4_netmask = "${element(split("/", var.network-priv-range),1)}"
+      }
+
+      linux_options {
+        host_name = "jenkins"
+        domain    = "${var.dns-domain}"
+      }
+
+      ipv4_gateway    = "${cidrhost(var.network-priv-range, 1)}"
+      dns_suffix_list = ["${var.dns-domain}"]
+      dns_server_list = "${split(",", var.dns-nameservers)}"
+    }
+  }
+}

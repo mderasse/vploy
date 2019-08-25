@@ -15,15 +15,28 @@
       file_type: directory
       excludes: 'template_factory,management'
     register: infras
+    tags:
+      - always
 
   - name: Deploy Infra - Create List of Infrastructure
     set_fact:
       infraNames: "{{ infras.files | map(attribute='path') | map('basename') | list }}"
+    tags:
+      - always
 
   - name:  Deploy Infra - Add Management to the list of Infrastructure
     set_fact:
       infraNames: "{{ ['management'] + infraNames }}"
+    tags:
+      - always
 
   - name: Deploy Infra - Include Playbook infrastructures
-    include: "infra/{{ item }}.yml"
+    include_tasks: 
+      file: "infra/{{ item }}.yml"
+      apply:
+        tags:
+          - deploy_infra
+          - "{{ item }}"
     with_items: "{{ infraNames }}"
+    tags:
+      - always

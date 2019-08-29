@@ -8,7 +8,6 @@
     - ../config/infra/passwords.yml
   tasks:
 
-  # Management is a special infrastructure that have to be deployed first
   - name: Deploy Infra - List infrastructure directory
     find:
       paths: ../config/infra
@@ -24,17 +23,12 @@
     tags:
       - always
 
-  - name:  Deploy Infra - Add Management to the list of Infrastructure
-    set_fact:
-      infraNames: "{{ ['management'] + infraNames }}"
-    tags:
-      - always
-
   - name: Deploy Infra - Include Playbook infrastructures
     include_tasks: 
       file: "infra/{{ item }}.yml"
       apply:
         tags:
+          - deploy
           - deploy_infra
           - "{{ item }}"
     with_items: "{{ infraNames }}"

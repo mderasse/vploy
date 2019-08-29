@@ -1,0 +1,5 @@
+---
+- name: Uninstall AWX from Management Infrastructure
+  hosts: localhost
+  connection: local
+  tasks:

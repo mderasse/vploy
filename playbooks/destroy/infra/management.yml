@@ -1,0 +1,27 @@
+
+# Management is a special infrastructure that have to be deployed first
+- name: "{{ item }} - Set Infra Name Fact"
+  set_fact:
+     infra_name: "{{ item }}"
+
+- name: "{{ infra_name }} - Load Configs"
+  include: infra/_config.yml
+
+- name: "{{ infra_name }} - Launch Terraform"
+  terraform:
+    project_path: ../../terraform/infra/{{ infra_name }}
+    state: absent
+    variables:
+      vsphere-address: "{{ vsphere.address }}"
+      vsphere-username: "{{ vsphere.username }}"
+      vsphere-password: "{{ password.vsphere }}"
+      vsphere-allow_unverified_ssl: "{{ vsphere.allow_unverified_ssl | lower }}"
+      vsphere-datacenter: "{{ vsphere.datacenter }}"
+      vsphere-cluster: "{{ vsphere.cluster }}"
+      vsphere-network-pg-public: "{{ vsphere.network.public_pg }}"
+      infra-name: "{{ infra_name }}"
+      dns-domain: "{{ dns.domain }}"
+      dns-nameservers: "{{ dns.nameservers | join(',') }}"
+      network-public-gateway: "{{ network.gateway }}"
+      network-public-ip: "{{ network.public_ip }}"
+      network-priv-range: "{{ network.private_range }}"

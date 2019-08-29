@@ -4,22 +4,28 @@
   connection: local
   gather_facts: no
 
-- import_playbook: playbooks/destroy/01-packer.yml
+- import_playbook: playbooks/destroy/01-destroy_infra.yml
+
+- import_playbook: playbooks/destroy/02-uninstall_awx.yml
+
+- import_playbook: playbooks/destroy/03-destroy_management.yml
+
+- import_playbook: playbooks/destroy/04-packer.yml
   tags:
   - packer
 
-- import_playbook: playbooks/destroy/02-destroy_infra.yml
+- import_playbook: playbooks/destroy/05-unprepare_infra.yml
   tags:
-  - destroy_infra
+  - unprepare_infra
 
-- import_playbook: playbooks/destroy/03-preseed.yml
+- import_playbook: playbooks/destroy/06-preseed.yml
   tags:
   - preseed
 
-- import_playbook: playbooks/destroy/04-isos.yml
+- import_playbook: playbooks/destroy/07-isos.yml
   tags:
   - isos
 
-- import_playbook: playbooks/destroy/05-keys.yml
+- import_playbook: playbooks/destroy/08-keys.yml
   tags:
   - keys

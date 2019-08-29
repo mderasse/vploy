@@ -1,0 +1,35 @@
+# Loadings all the config for the specified infrastructure
+- name: "{{ infra_name }} - Load Dns config"
+  include_vars: "{{ config_file }}"
+  loop_control:
+    loop_var: config_file
+  with_first_found:
+    - ../../config/infra/{{ infra_name }}/dns.yml
+    - ../../config/infra/dns.yml # Default
+
+- name: "{{ infra_name }} - Load Locale config"
+  include_vars: "{{ config_file }}"
+  loop_control:
+    loop_var: config_file
+  with_first_found:
+    - ../../config/infra/{{ infra_name }}/locale.yml
+    - ../../config/infra/locale.yml # Default
+
+- name: "{{ infra_name }} - Load Vsphere config"
+  include_vars: "{{ config_file }}"
+  loop_control:
+    loop_var: config_file
+  with_first_found:
+    - ../../config/infra/{{ infra_name }}/vsphere.yml
+    - ../../config/infra/vsphere.yml # Default
+
+- name: "{{ infra_name }} - Load Password config"
+  include_vars: "{{ config_file }}"
+  loop_control:
+    loop_var: config_file
+  with_first_found:
+    - ../../config/infra/{{ infra_name }}/passwords.yml
+    - ../../config/infra/passwords.yml # Default
+
+- name: "{{ infra_name }} - Load Network config"
+  include_vars: ../../config/infra/{{ infra_name }}/network.yml

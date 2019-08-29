@@ -1,0 +1,20 @@
+---
+- name: Destroy Management Infrastructure
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars_files:
+    - ../../config/infra/vsphere.yml
+    - ../../config/infra/passwords.yml
+  tasks:
+  - name: Destroy Management - Include Management Tasks
+    include_tasks: 
+      file: "infra/{{ item }}.yml"
+      apply:
+        tags:
+          - destroy
+          - "{{ item }}"
+    with_items:
+      - management
+    tags:
+      - always

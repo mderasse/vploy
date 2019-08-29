@@ -17,6 +17,6 @@
 
   - name: SSH Keys - Generate Ssh Gateway Key
     shell:
-      cmd: ssh-keygen -q -t ed25519 -a 100 -f ../generated/keys/sshgateway -C "" -N ""
-      creates: ../generated/keys/sshgateway
+      cmd: ssh-keygen -q -t ed25519 -a 100 -f ../generated/keys/basion -C "" -N ""
+      creates: ../generated/keys/bastion
 

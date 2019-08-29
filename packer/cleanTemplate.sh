@@ -35,7 +35,7 @@ cat << 'EOL' | tee /etc/rc.local
 #if hostname | grep localhost; then
 #    hostnamectl set-hostname "$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13 ; echo '')"
 #fi
-test -f /etc/ssh/ssh_host_dsa_key || dpkg-reconfigure openssh-server
+test -f /etc/ssh/ssh_host_dsa_key || ssh-keygen -A
 exit 0
 EOL
 

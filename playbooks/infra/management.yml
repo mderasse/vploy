@@ -3,9 +3,13 @@
 - name: "{{ item }} - Set Infra Name Fact"
   set_fact:
      infra_name: "{{ item }}"
+  tags:
+    - always
 
 - name: "{{ infra_name }} - Load Configs"
   include: infra/_config.yml
+  tags:
+    - always
 
 - name: "{{ infra_name }} - Launch Terraform"
   terraform:
@@ -30,29 +34,35 @@
 - name: "{{ infra_name }} - Add Gateway to Ansible Inventory"
   add_host:
     hostname: "{{ infra_name }}-gateway"
-    ansible_host: "{{ network.public_ip }}"
+    ansible_host: "{{ network.public_ip | ipaddr('address') }}"
     ansible_port: "22"
     ansible_user: "ansible"
-    ansible_ssh_private_key_file: "keys/ansible"
+    ansible_ssh_private_key_file: "generated/keys/ansible"
     ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
     ansible_become_pass: "{{ password.template }}"
+  tags:
+    - always
 
 - name: "{{ infra_name }} - Add Bastion to Ansible Inventory"
   add_host:
     hostname: "{{ infra_name }}-bastion"
-    ansible_host: "{{ network.public_ip }}"
+    ansible_host: "{{ network.public_ip | ipaddr('address') }}"
     ansible_port: "22002"
     ansible_user: "ansible"
-    ansible_ssh_private_key_file: "keys/ansible"
+    ansible_ssh_private_key_file: "generated/keys/ansible"
     ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
     ansible_become_pass: "{{ password.template }}"
+  tags:
+    - always
 
 - name: "{{ infra_name }} - Add AWX to Ansible Inventory"
   add_host:
     hostname: "{{ infra_name }}-awx"
-    ansible_host: "{{ network.public_ip }}"
+    ansible_host: "{{ network.public_ip | ipaddr('address') }}"
     ansible_port: "22003"
     ansible_user: "ansible"
-    ansible_ssh_private_key_file: "keys/ansible"
+    ansible_ssh_private_key_file: "generated/keys/ansible"
     ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
     ansible_become_pass: "{{ password.template }}"
+  tags:
+    - always

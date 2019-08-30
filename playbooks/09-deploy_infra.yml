@@ -1,0 +1,36 @@
+---
+- name: Deploys Infrastructures
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars_files:
+    - ../config/infra/vsphere.yml
+    - ../config/infra/passwords.yml
+  tasks:
+
+  - name: Deploy Infra - List infrastructure directory
+    find:
+      paths: ../config/infra
+      file_type: directory
+      excludes: 'template_factory,management'
+    register: infras
+    tags:
+      - always
+
+  - name: Deploy Infra - Create List of Infrastructure
+    set_fact:
+      infraNames: "{{ infras.files | map(attribute='path') | map('basename') | list }}"
+    tags:
+      - always
+
+  - name: Deploy Infra - Include Playbook infrastructures
+    include_tasks: 
+      file: "infra/{{ item }}.yml"
+      apply:
+        tags:
+          - deploy
+          - deploy_infra
+          - "{{ item }}"
+    with_items: "{{ infraNames }}"
+    tags:
+      - always

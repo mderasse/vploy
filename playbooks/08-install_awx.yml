@@ -1,0 +1,11 @@
+---
+- name: Configure as less as possible the Management gateway for AWX
+  hosts: management-gateway
+  become: yes
+  tasks:
+
+  - name: Configure Gateway - Enable Ipv4 Forward
+    sysctl:
+      name: net.ipv4.ip_forward
+      value: "1"
+      sysctl_set: yes

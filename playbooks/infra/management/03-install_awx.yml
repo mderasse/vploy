@@ -1,0 +1,118 @@
+- name: Management AWX - Install Package Dependencies
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+    autoremove: yes
+    cache_valid_time: 3600
+    install_recommends: no
+  vars:
+    packages:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg-agent
+    - software-properties-common
+
+- name: Management AWX - Add Docker Apt Key
+  apt_key:
+    url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg
+    state: present
+  become: yes
+
+- name: Management AWX - Add Docker SourceList
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable
+    state: present
+  become: yes
+
+- name: Management AWX - Install AWX Package Dependencies
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+    autoremove: yes
+    cache_valid_time: 3600
+    install_recommends: no
+  vars:
+    packages:
+    - docker-ce
+    - docker-compose
+    - ansible
+    - git
+    - python-setuptools
+    - python-pip
+  become: yes
+
+- name: Management AWX - Install PIP docker-compose
+  pip:
+    name: docker-compose
+    state: present
+  become: yes
+
+- name: Configure Awx - Download AWX
+  git:
+    repo: https://github.com/ansible/awx
+    dest: /home/ansible/awx
+    update: no
+
+
+- name: Configure Awx - Change Postgres Data Dir
+  lineinfile:
+    destfile: "/home/ansible/awx/installer/inventory"
+    regexp: '^#?\s*postgres_data_dir=.*$'
+    line: "postgres_data_dir=/var/pgdocker"
+    state: present
+
+- name: Configure Awx - Change Postgres Password
+  lineinfile:
+    destfile: "/home/ansible/awx/installer/inventory"
+    regexp: '^#?\s*pg_password=.*$'
+    line: "pg_password={{ pwd_alias }}"
+    state: present
+  vars:
+    pwd_alias: "{{ lookup('password', '/dev/null length=25 chars=ascii_letters') }}"
+
+- name: Configure Awx - Change Secret Key
+  lineinfile:
+    destfile: "/home/ansible/awx/installer/inventory"
+    regexp: '^#?\s*secret_key=.*$'
+    line: "secret_key={{ secret_alias }}"
+    state: present
+  vars:
+    secret_alias: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters') }}"
+
+- name: Configure Awx - Set default Admin Password
+  lineinfile:
+    destfile: "/home/ansible/awx/installer/inventory"
+    regexp: '^#?\s*admin_password=.*$'
+    line: "admin_password={{ password.awx }}"
+    state: present
+
+- name: Configure Awx - Enable Project Data Dir
+  lineinfile:
+    destfile: "/home/ansible/awx/installer/inventory"
+    regexp: '^#?\s*project_data_dir=.*$'
+    line: "project_data_dir=/var/lib/awx/projects"
+    state: present
+
+- name: Configure Awx - Disable Demo Data
+  lineinfile:
+    destfile: "/home/ansible/awx/installer/inventory"
+    regexp: '^#?\s*create_preload_data=.*$'
+    line: "create_preload_data=False"
+    state: present
+
+- name: Configure Awx - Run the AWX installation playbook
+  command: "ansible-playbook install.yml -i inventory"
+  args:
+    chdir: "/home/ansible/awx/installer"
+    creates: /etc/awx_playbook_complete
+  become: yes
+  register: install_awx
+
+  # Without Pause here, we will delete data too early and init of awx might fail
+- name: Configure Awx - Waiting 1 minute for first Init
+  pause:
+    minutes: 1
+  when: install_awx.changed 

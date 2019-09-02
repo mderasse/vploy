@@ -18,3 +18,36 @@
       - management
     tags:
       - always
+
+- name: Deploy Management - Configure Gateway
+  hosts: management-gateway
+  become: yes
+  tasks:
+  - name: Deploy Management - Configure Gateway
+    include_tasks:
+      file: infra/management/01-gateway.yml
+      apply:
+        tags:
+          - management
+          - awx
+    tags:
+      - always
+
+- name: Deploy Management - Install and Configure AWX
+  hosts: management-awx
+  vars_files:
+    - ../config/infra/passwords.yml
+  become: yes
+  tasks:
+  - name: Deploy Management - Install and Configure AWX
+    include_tasks:
+      file: infra/management/{{ item }}.yml
+      apply:
+        tags:
+          - management
+          - awx
+    with_items:
+      - 02-install_deps_awx
+      - 03-install_awx
+    tags:
+      - always

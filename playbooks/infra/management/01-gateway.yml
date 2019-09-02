@@ -1,0 +1,46 @@
+- name: "Configure Management Gateway - Set Infra Name Fact"
+  set_fact:
+    infra_name: "management"
+  tags:
+    - always
+
+- name: "Configure Management Gateway - Load Configs"
+  include: infra/_config.yml
+  tags:
+    - always
+
+- name: Management Gateway - Enable Ipv4 Forward
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    sysctl_set: yes
+
+- name: Management Gateway - Enable POSTROUTING MASQUERADE
+  iptables:
+    table: nat
+    chain: POSTROUTING
+    out_interface: "{{ ansible_default_ipv4.interface }}"
+    jump: MASQUERADE
+    comment: Masquerade on Public IP
+
+- name: Management Gateway - PreRouting to AWX
+  iptables:
+    table: nat
+    chain: PREROUTING
+    in_interface: "{{ ansible_default_ipv4.interface }}"
+    protocol: tcp
+    jump: DNAT
+    destination_port: "22003"
+    to_destination: "{{ network.private_range | ipaddr('address') | ipmath(2) }}:22"
+    comment: Prerouting to AWX Server SSH Service
+
+- name: Management Gateway - PreRouting to AWX
+  iptables:
+    table: nat
+    chain: PREROUTING
+    in_interface: "{{ ansible_default_ipv4.interface }}"
+    protocol: tcp
+    jump: DNAT
+    destination_port: "80"
+    to_destination: "{{ network.private_range | ipaddr('address') | ipmath(2) }}:80"
+    comment: Prerouting to AWX Server HTTP Service

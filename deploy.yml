@@ -41,8 +41,4 @@
 
 - import_playbook: playbooks/07-deploy_management.yml
 
-- import_playbook: playbooks/08-install_awx.yml
-  tags:
-  - awx
-
-- import_playbook: playbooks/09-deploy_infra.yml
+- import_playbook: playbooks/08-deploy_infra.yml

@@ -1,61 +1,8 @@
-- name: Management AWX - Install Package Dependencies
-  apt:
-    name: "{{ packages }}"
-    state: present
-    update_cache: yes
-    autoremove: yes
-    cache_valid_time: 3600
-    install_recommends: no
-  vars:
-    packages:
-    - apt-transport-https
-    - ca-certificates
-    - curl
-    - gnupg-agent
-    - software-properties-common
-
-- name: Management AWX - Add Docker Apt Key
-  apt_key:
-    url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg
-    state: present
-  become: yes
-
-- name: Management AWX - Add Docker SourceList
-  apt_repository:
-    repo: deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable
-    state: present
-  become: yes
-
-- name: Management AWX - Install AWX Package Dependencies
-  apt:
-    name: "{{ packages }}"
-    state: present
-    update_cache: yes
-    autoremove: yes
-    cache_valid_time: 3600
-    install_recommends: no
-  vars:
-    packages:
-    - docker-ce
-    - docker-compose
-    - ansible
-    - git
-    - python-setuptools
-    - python-pip
-  become: yes
-
-- name: Management AWX - Install PIP docker-compose
-  pip:
-    name: docker-compose
-    state: present
-  become: yes
-
 - name: Configure Awx - Download AWX
   git:
     repo: https://github.com/ansible/awx
     dest: /home/ansible/awx
     update: no
-
 
 - name: Configure Awx - Change Postgres Data Dir
   lineinfile:
@@ -108,7 +55,6 @@
   args:
     chdir: "/home/ansible/awx/installer"
     creates: /etc/awx_playbook_complete
-  become: yes
   register: install_awx
 
   # Without Pause here, we will delete data too early and init of awx might fail

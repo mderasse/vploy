@@ -1,0 +1,4 @@
+host: http://{{ network.public_ip | ipaddr('address') }}
+username: admin
+password: {{ password.awx }}
+verify_ssl: false

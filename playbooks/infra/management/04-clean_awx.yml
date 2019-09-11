@@ -1,0 +1,48 @@
+- name: "Clean AWX - Set Infra Name Fact"
+  set_fact:
+    infra_name: "management"
+  tags:
+    - always
+
+- name: "Clean AWX - Load Configs"
+  include: infra/_config.yml
+  tags:
+    - always
+
+- name: Clean AWX  - Generate Tower Cli Creds file
+  template:
+    src: templates/tower_cli.j2
+    dest: ../generated/tower_cli.cfg
+    mode: 0644
+
+- name: Clean AWX - Delete Demo Job Template
+  tower_job_template:
+    name: "Demo Job Template"
+    state: "absent"
+    job_type: "run"
+    project: "Demo Project"
+    playbook: "ping.yml"
+    tower_config_file: "../generated/tower_cli.cfg"
+  ignore_errors: true # Fail if Project is deleted ... Have to skip error
+
+- name: Clean AWX - Delete Demo Project
+  tower_project:
+    name: "Demo Project"
+    organization: "Default"
+    state: absent
+    tower_config_file: "../generated/tower_cli.cfg"
+
+- name: Clean AWX - Delete Demo Credential
+  tower_credential:
+    name: "Demo Credential"
+    kind: "ssh"
+    organization: ""
+    state: "absent"
+    tower_config_file: "../generated/tower_cli.cfg"
+
+- name: Clean AWX - Delete Demo Inventory
+  tower_inventory:
+    name: "Demo Inventory"
+    organization: "Default"
+    state: absent
+    tower_config_file: "../generated/tower_cli.cfg"

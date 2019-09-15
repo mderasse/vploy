@@ -1,3 +1,84 @@
+# Create AWX Users
+- name: Initialize AWX - Generate vploy awx password
+  set_fact:
+    vploy_awx_pwd: "{{ lookup('password', '/dev/null length=25 chars=ascii_letters') }}"
+
+- name: Initialize AWX - Create vPloy Tower User
+  tower_user:
+    username: vploy
+    password: "{{ vploy_awx_pwd }}"
+    email: vploy@example.org
+    superuser: true
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+
+# Manage credentials
+- name: Initialize AWX - Add vPloy AWX user in Credentials
+  tower_credential:
+    name: vploy-awx
+    description: Vploy AWX
+    organization: Default
+    kind: tower
+    validate_certs: false
+    host: "http://{{ network.public_ip | ipaddr('address') }}"
+    username: vploy
+    password: "{{ vploy_awx_pwd }}"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+
+- name: Initialize AWX - Add vCenter user in Credentials
+  tower_credential:
+    name: "{{ vsphere.address }}"
+    description: "Credential for the vCenter {{ vsphere.address }}"
+    organization: Default
+    kind: vmware
+    host: "{{ vsphere.address }}"
+    username: "{{ vsphere.username }}"
+    password: "{{ password.vsphere }}"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+
+- name: Initialize AWX - Add SCM Credentials
+  tower_credential:
+    name: "SCM"
+    description: "Key to access to a scm"
+    organization: "Default"
+    kind: scm
+    username: "{{awx.scm.user}}"
+    ssh_key_data: "../generated/keys/ansible"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+
+- name: Initialize AWX - Add Ansible Machine Credential
+  tower_credential:
+    name: "Ansible SSH Key"
+    description: "Key to access to servers manage by ansible"
+    organization: "Default"
+    kind: ssh
+    username: ansible
+    ssh_key_data: "../generated/keys/ansible"
+    become_username: "root"
+    become_password: "{{ password.template }}"
+    become_method: sudo
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+
+# Manage Projects
+- name: Initialize AWX - Add vPloy Project
+  tower_project:
+    name: "vPloy"
+    description: "Project vPloy"
+    organization: "Default"
+    scm_branch: master
+    scm_clean: yes
+    scm_credential: "SCM"
+    scm_type: "{{awx.scm.type}}"
+    scm_update_on_launch: yes
+    scm_url: "{{awx.scm.url}}"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+
+# Manage Inventory
 - name: Initialize AWX - Create vPloy inventory
   tower_inventory:
     name: "vploy"

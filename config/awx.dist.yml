@@ -1,0 +1,5 @@
+awx:
+  scm:
+    type: git
+    url: <Git Repository URL>
+    user: <Git Username>

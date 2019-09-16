@@ -1,0 +1,12 @@
+vsphere:
+  address: <vSphere Address>
+  username: <vSphere Username>
+  allow_unverified_ssl: false
+  datacenter: <vSphere Datacenter Name>
+  cluster: <vSphere Cluster Name>
+  network:
+    dvs: <vSphere DVS>
+    public_pg: <vSphere Public PortGroup>
+  datastore:
+    iso: <vSphere Datastore for ISO>
+    template: <vSphere Datastore for Templates>

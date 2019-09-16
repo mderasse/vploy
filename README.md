@@ -1,6 +1,6 @@
 # vPloy
 
-Current State: Under active development (but usable)
+**Current State:** Under active development (but usable)
 
 vPloy is an application that combine some of the most famous Infrastructure As Code tools in order to deploy a full infrastructure on a VMware vSphere system.
 
@@ -60,5 +60,5 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ## Acknowledgments
 
-* OVHcloud for their [Hosted Private Cloud](https://www.ovh.com/fr/private-cloud/) used for the development of vPloy
+* OVHcloud for their [Hosted Private Cloud](https://www.ovh.com/fr/private-cloud/) used for the development of vPloy.
 * [marema31](https://github.com/marema31), [HLerman](https://github.com/HLerman) for their comments and ideas.

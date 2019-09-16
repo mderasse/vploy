@@ -10,6 +10,4 @@
 generated/*
 
 # Configuration
-config/*
-!config/*.dist.yml
-config/tower_cli.cfg
+/config/**

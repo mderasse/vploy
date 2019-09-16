@@ -1,4 +1,0 @@
-network:
-  public_ip: xxx.xxx.xxx.xxx/28 # Public Ip with Subnet
-  private_ip: 192.168.1.1/24
-  gateway: xxx.xxx.xxx.xxx

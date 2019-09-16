@@ -1,6 +1,0 @@
-dependencies:
-  terraform_version: 0.12.1
-  packer_version: 1.4.1
-  packer_vsphere_version: 2.0.1
-  debian10_version: 10.0.0
-  ubuntu_version: 18.04.3

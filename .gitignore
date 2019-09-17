@@ -10,4 +10,4 @@
 generated/*
 
 # Configuration
-/config/**
+/config

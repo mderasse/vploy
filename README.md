@@ -61,4 +61,4 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 ## Acknowledgments
 
 * OVHcloud for their [Hosted Private Cloud](https://www.ovh.com/fr/private-cloud/) used for the development of vPloy.
-* [marema31](https://github.com/marema31), [HLerman](https://github.com/HLerman) for their comments and ideas.
+* [marema31](https://github.com/marema31), [ced42](https://github.com/ced42) and [HLerman](https://github.com/HLerman) for their comments and ideas.

@@ -11,3 +11,16 @@ generated/*
 
 # Configuration
 /config
+
+# Ignore Extra Infras
+playbooks/infra/**
+!playbooks/infra/management.yml
+!playbooks/infra/_config.yml
+!playbooks/infra/management
+
+playbooks/destroy/infra/**
+!playbooks/destroy/infra/_config.yml
+!playbooks/destroy/infra/management.yml
+
+terraform/infra/**
+!terraform/infra/management

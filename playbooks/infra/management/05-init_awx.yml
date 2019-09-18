@@ -45,7 +45,7 @@
     organization: "Default"
     kind: scm
     username: "{{awx.scm.user}}"
-    ssh_key_data: "../generated/keys/ansible"
+    ssh_key_data: "{{ lookup('file', '../generated/keys/ansible') }}"
     state: present
     tower_config_file: "../generated/tower_cli.cfg"
 
@@ -56,10 +56,21 @@
     organization: "Default"
     kind: ssh
     username: ansible
-    ssh_key_data: "../generated/keys/ansible"
+    ssh_key_data: "{{ lookup('file', '../generated/keys/ansible') }}"
     become_username: "root"
     become_password: "{{ password.template }}"
     become_method: sudo
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+
+- name: Initialize AWX - Add Bastion Machine Credential
+  tower_credential:
+    name: "Bastion SSH Key"
+    description: "Key used by the bastion to access the machine"
+    organization: "Default"
+    kind: ssh
+    username: bastion
+    ssh_key_data: "{{ lookup('file', '../generated/keys/bastion') }}"
     state: present
     tower_config_file: "../generated/tower_cli.cfg"
 
@@ -106,6 +117,10 @@
       network: "{{ network }}"
       dns: "{{ dns }}"
       locale: "{{ locale }}"
+      bastion:
+        ip: "{{ network.private_range | ipaddr('address') | ipmath(1) }}"
+        pubkey: "{{ lookup('file', '../generated/keys/bastion.pub') }}"
+      extras: "{{ extras }}"
     state: present
     tower_config_file: "../generated/tower_cli.cfg"
   register: group_infra

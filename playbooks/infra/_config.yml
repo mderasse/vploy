@@ -19,6 +19,16 @@
   tags:
     - always
 
+- name: "{{ infra_name }} - Load Extras config"
+  include_vars: "{{ config_file }}"
+  loop_control:
+    loop_var: config_file
+  with_first_found:
+    - ../config/infra/{{ infra_name }}/extras.yml
+    - ../config/infra/extras.yml # Default
+  tags:
+    - always
+
 - name: "{{ infra_name }} - Load Vsphere config"
   include_vars: "{{ config_file }}"
   loop_control:

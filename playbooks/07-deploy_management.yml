@@ -75,5 +75,6 @@
     with_items:
       - 04-clean_awx
       - 05-init_awx
+      - 06-custom_awx
     tags:
       - always

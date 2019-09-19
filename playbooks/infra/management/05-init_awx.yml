@@ -51,7 +51,7 @@
 
 - name: Initialize AWX - Add Ansible Machine Credential
   tower_credential:
-    name: "Ansible SSH Key"
+    name: "Ansible-SSH-Key"
     description: "Key to access to servers manage by ansible"
     organization: "Default"
     kind: ssh
@@ -65,7 +65,7 @@
 
 - name: Initialize AWX - Add Bastion Machine Credential
   tower_credential:
-    name: "Bastion SSH Key"
+    name: "Bastion-SSH-Key"
     description: "Key used by the bastion to access the machine"
     organization: "Default"
     kind: ssh
@@ -88,21 +88,27 @@
     scm_url: "{{awx.scm.url}}"
     state: present
     tower_config_file: "../generated/tower_cli.cfg"
+  register: vploy_project
+
+- name: Initialize AWX - Wait for SCM Pull
+  pause:
+    seconds: 30
+  when: vploy_project.changed
 
 # Manage Inventory
 - name: Initialize AWX - Create vPloy inventory
   tower_inventory:
-    name: "vploy"
+    name: "vPloy"
     description: "vPloy inventory"
     organization: "Default"
     state: present
     tower_config_file: "../generated/tower_cli.cfg"
 
-- name: "Initialize AWX - Create {{ vsphere.address }} group"
+- name: "Initialize AWX - Create {{ vsphere.address | replace('.','-') }} group"
   tower_group:
-    name: "{{ vsphere.address }}"
+    name: "{{ vsphere.address | replace('.','-') }}"
     description: "Regroup Server part of {{ vsphere.address }} infrastructure"
-    inventory: "vploy"
+    inventory: "vPloy"
     variables: "@../config/infra/vsphere.yml"
     state: present
     tower_config_file: "../generated/tower_cli.cfg"
@@ -112,7 +118,7 @@
   tower_group:
     name: "{{ infra_name }}"
     description: "{{ infra_name }} Infrastructure"
-    inventory: "vploy"
+    inventory: "vPloy"
     variables: 
       network: "{{ network }}"
       dns: "{{ dns }}"
@@ -129,7 +135,7 @@
   tower_group:
     name: "gateway"
     description: "Regroup Gateway Servers"
-    inventory: "vploy"
+    inventory: "vPloy"
     state: present
     tower_config_file: "../generated/tower_cli.cfg"
   register: group_gateway
@@ -138,7 +144,7 @@
   tower_group:
     name: "bastion"
     description: "Regroup Bastion Servers"
-    inventory: "vploy"
+    inventory: "vPloy"
     state: present
     tower_config_file: "../generated/tower_cli.cfg"
   register: group_bastion
@@ -147,35 +153,17 @@
   tower_group:
     name: "awx"
     description: "Regroup Awx Servers"
-    inventory: "vploy"
+    inventory: "vPloy"
     state: present
     tower_config_file: "../generated/tower_cli.cfg"
   register: group_awx
-
-- name: "AWX {{ infra_name }} - Create Ldap group"
-  tower_group:
-    name: "ldap"
-    description: "Regroup ldap Servers"
-    inventory: "vploy"
-    state: present
-    tower_config_file: "../generated/tower_cli.cfg"
-  register: group_ldap
-
-- name: "AWX {{ infra_name }} - Create Jenkins group"
-  tower_group:
-    name: "jenkins"
-    description: "Regroup Jenkins Servers"
-    inventory: "vploy"
-    state: present
-    tower_config_file: "../generated/tower_cli.cfg"
-  register: group_jenkins
 
 # Add Management Host in AWX
 - name: "AWX {{ infra_name }} - Add Gateway server"
   tower_host:
     name: "gateway.{{ infra_name }}"
     description: "Gateway Management"
-    inventory: "vploy"
+    inventory: "vPloy"
     state: present
     tower_config_file: "../generated/tower_cli.cfg"
     variables: 
@@ -187,7 +175,7 @@
   tower_host:
     name: "bastion.{{ infra_name }}"
     description: "bastion Management"
-    inventory: "vploy"
+    inventory: "vPloy"
     state: present
     tower_config_file: "../generated/tower_cli.cfg"
     variables: 
@@ -199,37 +187,13 @@
   tower_host:
     name: "awx.{{ infra_name }}"
     description: "awx Management"
-    inventory: "vploy"
+    inventory: "vPloy"
     state: present
     tower_config_file: "../generated/tower_cli.cfg"
     variables: 
         ansible_host: "{{ network.private_range | ipaddr('address') | ipmath(2) }}"
         ansible_port: "22"
   register: host_awx
-
-- name: "AWX {{ infra_name }} - Add Ldap server"
-  tower_host:
-    name: "ldap.{{ infra_name }}"
-    description: "LDAP Management"
-    inventory: "vploy"
-    state: present
-    tower_config_file: "../generated/tower_cli.cfg"
-    variables: 
-        ansible_host: "{{ network.private_range | ipaddr('address') | ipmath(3) }}"
-        ansible_port: "22"
-  register: host_ldap
-
-- name: "AWX {{ infra_name }} - Add Jenkins server"
-  tower_host:
-    name: "jenkins.{{ infra_name }}"
-    description: "Jenkins Management"
-    inventory: "vploy"
-    state: present
-    tower_config_file: "../generated/tower_cli.cfg"
-    variables: 
-        ansible_host: "{{ network.private_range | ipaddr('address') | ipmath(4) }}"
-        ansible_port: "22"
-  register: host_jenkins
 
 # Link Servers to groups
 - name: "AWX {{ infra_name }} - Link Server to groups"
@@ -239,7 +203,9 @@
      TOWER_USERNAME="admin" \
      TOWER_PASSWORD="{{ password.awx }}" \
      TOWER_VERIFY_SSL=false \
-     ~/.local/bin/tower-cli host associate --host "{{ item.host_id }}" --group "{{ item.group_id }}"
+     ~/.local/bin/tower-cli host associate --host "{{ host_group.host_id }}" --group "{{ host_group.group_id }}"
+  loop_control:
+    loop_var: host_group
   with_items:
     # vsphere group
     - group_id: "{{ group_vsphere.id }}"
@@ -248,10 +214,6 @@
       host_id: "{{ host_bastion.id }}"
     - group_id: "{{ group_vsphere.id }}"
       host_id: "{{ host_awx.id }}"
-    - group_id: "{{ group_vsphere.id }}"
-      host_id: "{{ host_ldap.id }}"
-    - group_id: "{{ group_vsphere.id }}"
-      host_id: "{{ host_jenkins.id }}"
     # infra group
     - group_id: "{{ group_infra.id }}"
       host_id: "{{ host_gateway.id }}"
@@ -259,10 +221,6 @@
       host_id: "{{ host_bastion.id }}"
     - group_id: "{{ group_infra.id }}"
       host_id: "{{ host_awx.id }}"
-    - group_id: "{{ group_infra.id }}"
-      host_id: "{{ host_ldap.id }}"
-    - group_id: "{{ group_infra.id }}"
-      host_id: "{{ host_jenkins.id }}"
     # gateway group
     - group_id: "{{ group_gateway.id }}"
       host_id: "{{ host_gateway.id }}"
@@ -272,9 +230,3 @@
     # awx group
     - group_id: "{{ group_awx.id }}"
       host_id: "{{ host_awx.id }}"
-    # ldap group
-    - group_id: "{{ group_ldap.id }}"
-      host_id: "{{ host_ldap.id }}"
-    # jenkins group
-    - group_id: "{{ group_jenkins.id }}"
-      host_id: "{{ host_jenkins.id }}"

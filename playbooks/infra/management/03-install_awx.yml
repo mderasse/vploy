@@ -57,8 +57,8 @@
     creates: /etc/awx_playbook_complete
   register: install_awx
 
-  # Without Pause here, we will delete data too early and init of awx might fail
-- name: Configure Awx - Waiting 1 minute for first Init
+# Without Pause here, we will delete data too early and init of awx might fail
+- name: Configure Awx - Waiting 3 minute for first Init
   pause:
-    minutes: 1
+    minutes: 3
   when: install_awx.changed 

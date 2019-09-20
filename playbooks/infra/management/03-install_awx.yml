@@ -4,6 +4,15 @@
     dest: /home/ansible/awx
     update: no
 
+# Required else AWX doesn't restart
+# https://github.com/ansible/awx/issues/3705
+- name: Configure Awx - Change Docker Compose Dir
+  lineinfile:
+    destfile: "/home/ansible/awx/installer/inventory"
+    regexp: '^#?\s*docker_compose_dir=.*$'
+    line: "docker_compose_dir=/var/lib/awxcompose"
+    state: present
+
 - name: Configure Awx - Change Postgres Data Dir
   lineinfile:
     destfile: "/home/ansible/awx/installer/inventory"

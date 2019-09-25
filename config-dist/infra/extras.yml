@@ -1,3 +1,4 @@
 # Contain extra config used by awx jobs
 extras:
   mail: example@example.org
+  ips_whitelist: []

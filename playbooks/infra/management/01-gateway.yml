@@ -4,10 +4,18 @@
   tags:
     - always
 
+
 - name: "Configure Management Gateway - Load Configs"
   include: infra/_config.yml
   tags:
     - always
+
+- name: Collect only facts returned by facter
+  setup:
+    gather_subset:
+      - '!all'
+      - '!any'
+      - network
 
 - name: Management Gateway - Enable Ipv4 Forward
   sysctl:

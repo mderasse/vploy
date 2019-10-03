@@ -1,5 +1,5 @@
 awx:
   scm:
     type: git
-    url: <Git Repository URL>
-    user: <Git Username>
+    url: https://github.com/mderasse/vploy-playbooks.git
+    user: git

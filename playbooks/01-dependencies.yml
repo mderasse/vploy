@@ -49,6 +49,12 @@
       owner: root
       group: root
 
+  - name: Python PIP - Install Python PIP Package
+    apt:
+      name: python-pip
+      state: present
+      install_recommends: no
+
   - name: Iso Builder - Install Gen Iso Image Package
     apt:
       name: genisoimage

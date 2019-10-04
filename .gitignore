@@ -17,7 +17,6 @@ playbooks/infra/**
 !playbooks/infra/management**
 !playbooks/infra/_config.yml
 
-
 playbooks/destroy/infra/**
 !playbooks/destroy/infra/_config.yml
 !playbooks/destroy/infra/management**

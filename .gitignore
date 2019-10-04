@@ -14,13 +14,13 @@ generated/*
 
 # Ignore Extra Infras
 playbooks/infra/**
-!playbooks/infra/management.yml
+!playbooks/infra/management**
 !playbooks/infra/_config.yml
-!playbooks/infra/management
+
 
 playbooks/destroy/infra/**
 !playbooks/destroy/infra/_config.yml
-!playbooks/destroy/infra/management.yml
+!playbooks/destroy/infra/management**
 
 terraform/infra/**
 !terraform/infra/management

@@ -190,16 +190,16 @@ resource "vsphere_virtual_machine" "awx" {
 }
 
 #===============================================================================
-# LDAP deployement
+# VPN deployement
 #===============================================================================
-resource "vsphere_virtual_machine" "ldap" {
-  name                        = "ldap.${var.infra-name}"
+resource "vsphere_virtual_machine" "vpn" {
+  name                        = "vpn.${var.infra-name}"
   resource_pool_id            = "${data.vsphere_resource_pool.resource-pool.id}"
   datastore_id                = "${data.vsphere_datastore.datastore_pcc-000020.id}"
   folder                      = "/${var.vsphere-datacenter}/vm/${var.infra-name}"
-  num_cpus                    = 4
-  memory                      = 4096
-  memory_reservation          = 4096
+  num_cpus                    = 2
+  memory                      = 2048
+  memory_reservation          = 2048
   guest_id                    = "ubuntu64Guest"
 
   disk {
@@ -222,7 +222,7 @@ resource "vsphere_virtual_machine" "ldap" {
       }
 
       linux_options {
-        host_name = "ldap"
+        host_name = "vpn"
         domain    = "${var.dns-domain}"
       }
 
@@ -234,16 +234,16 @@ resource "vsphere_virtual_machine" "ldap" {
 }
 
 #===============================================================================
-# Jenkins deployement
+# LDAP deployement
 #===============================================================================
-resource "vsphere_virtual_machine" "jenkins" {
-  name                        = "jenkins.${var.infra-name}"
+resource "vsphere_virtual_machine" "ldap" {
+  name                        = "ldap.${var.infra-name}"
   resource_pool_id            = "${data.vsphere_resource_pool.resource-pool.id}"
   datastore_id                = "${data.vsphere_datastore.datastore_pcc-000020.id}"
   folder                      = "/${var.vsphere-datacenter}/vm/${var.infra-name}"
-  num_cpus                    = 4
-  memory                      = 8192
-  memory_reservation          = 8192
+  num_cpus                    = 2
+  memory                      = 2048
+  memory_reservation          = 2048
   guest_id                    = "ubuntu64Guest"
 
   disk {
@@ -266,7 +266,7 @@ resource "vsphere_virtual_machine" "jenkins" {
       }
 
       linux_options {
-        host_name = "jenkins"
+        host_name = "ldap"
         domain    = "${var.dns-domain}"
       }
 

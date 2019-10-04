@@ -78,5 +78,7 @@
       - 04-clean_awx
       - 05-init_awx
       - 06-init_awx_tmpl
+      - 07-custom_awx
+      - 08-custom_awx_tmpl
     tags:
       - always

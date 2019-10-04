@@ -13,8 +13,10 @@
     openssh_keypair:
       path: ../generated/keys/ansible
       type: ed25519
+      state: present
 
   - name: SSH Keys - Generate Ssh Gateway Key
     openssh_keypair:
       path: ../generated/keys/bastion
       type: ed25519
+      state: present

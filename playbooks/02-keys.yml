@@ -10,13 +10,11 @@
       state: directory
 
   - name: SSH Keys - Generate Ansible Key
-    shell:
-      cmd: ssh-keygen -q -t ed25519 -a 100 -f ../generated/keys/ansible -C "" -N ""
-      creates: ../generated/keys/ansible
-    register: sshkey_ansible
+    openssh_keypair:
+      path: ../generated/keys/ansible
+      type: ed25519
 
   - name: SSH Keys - Generate Ssh Gateway Key
-    shell:
-      cmd: ssh-keygen -q -t ed25519 -a 100 -f ../generated/keys/basion -C "" -N ""
-      creates: ../generated/keys/bastion
-
+    openssh_keypair:
+      path: ../generated/keys/bastion
+      type: ed25519

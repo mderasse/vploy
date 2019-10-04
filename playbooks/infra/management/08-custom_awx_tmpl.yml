@@ -1,0 +1,37 @@
+# Create Job Templates for custom
+# There is currently an issue on tower_job_template. The credential key is not working
+- name: "AWX {{ infra_name }} - Create Base Job Templates"
+  tower_job_template:
+    name: "{{ job_name | title }} - Base"
+    description: "Configure Base {{ job_name | title }}"
+    job_type: "run"
+    inventory: "vPloy"
+    project: "vPloy"
+    playbook: "types/{{ job_name }}/base.yml"
+    credential: "Ansible-SSH-Key"
+    limit: "{{ job_name }}"
+    state: "present"
+    tower_config_file: "../generated/tower_cli.cfg"
+  loop_control:
+    loop_var: job_name
+  with_items:
+    - vpn
+    - ldap
+
+- name: "AWX {{ infra_name }} - Create Firewall Job Templates"
+  tower_job_template:
+    name: "{{ job_name | title }} - Firewall"
+    description: "Configure Firewall {{ job_name | title }}"
+    job_type: "run"
+    inventory: "vPloy"
+    project: "vPloy"
+    playbook: "types/{{ job_name }}/firewall.yml"
+    credential: "Ansible-SSH-Key"
+    limit: "{{ job_name }}"
+    state: "present"
+    tower_config_file: "../generated/tower_cli.cfg"
+  loop_control:
+    loop_var: job_name
+  with_items:
+    - vpn
+    - ldap

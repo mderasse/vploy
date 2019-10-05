@@ -199,10 +199,10 @@
 - name: "AWX {{ infra_name }} - Link Server to groups"
   shell:
     cmd: |
-     TOWER_HOST="http://{{ network.public_ip | ipaddr('address') }}" \
+     TOWER_HOST="{{ tower_cli_url }}" \
      TOWER_USERNAME="admin" \
      TOWER_PASSWORD="{{ password.awx }}" \
-     TOWER_VERIFY_SSL=false \
+     TOWER_VERIFY_SSL={{ tower_cli_verify_ssl }} \
      ~/.local/bin/tower-cli host associate --host "{{ host_group.host_id }}" --group "{{ host_group.group_id }}"
   loop_control:
     loop_var: host_group

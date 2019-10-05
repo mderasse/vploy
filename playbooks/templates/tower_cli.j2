@@ -1,4 +1,4 @@
-host: http://{{ network.public_ip | ipaddr('address') }}
+host: {{ tower_cli_url }}
 username: admin
 password: {{ password.awx }}
-verify_ssl: false
+verify_ssl: {{ tower_cli_verify_ssl }}

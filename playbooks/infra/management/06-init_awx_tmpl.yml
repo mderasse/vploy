@@ -37,3 +37,20 @@
     - awx
     - bastion
     - gateway
+
+- name: "AWX {{ infra_name }} - Create WebServer Job Template on Gateway"
+  tower_job_template:
+    name: "{{ job_name | title }} - WebServer"
+    description: "Configure WebServer {{ job_name | title }}"
+    job_type: "run"
+    inventory: "vPloy"
+    project: "vPloy"
+    playbook: "types/{{ job_name }}/webserver.yml"
+    credential: "Ansible-SSH-Key"
+    limit: "{{ job_name }}"
+    state: "present"
+    tower_config_file: "../generated/tower_cli.cfg"
+  loop_control:
+    loop_var: job_name
+  with_items:
+    - gateway

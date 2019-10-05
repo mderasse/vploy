@@ -9,6 +9,24 @@
   tags:
     - always
 
+- name: "Clean AWX - Check if gateway webserver is running"
+  uri:
+    url: "https://awx.{{ dns.domain }}"
+  ignore_errors: true
+  register: webserver_configured
+
+- name: "Clean AWX - Set Fact for tower_cli with HTTPS"
+  set_fact: 
+    tower_cli_url: "https://awx.{{ dns.domain }}"
+    tower_cli_verify_ssl: "true"
+  when: webserver_configured.failed == False
+
+- name: "Clean AWX - Set Fact for tower_cli with HTTP"
+  set_fact: 
+    tower_cli_url: "http://{{ network.public_ip | ipaddr('address') }}"
+    tower_cli_verify_ssl: "false"
+  when: webserver_configured.failed == True
+
 - name: Clean AWX  - Generate Tower Cli Creds file
   template:
     src: templates/tower_cli.j2

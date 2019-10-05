@@ -4,7 +4,6 @@
   tags:
     - always
 
-
 - name: "Configure Management Gateway - Load Configs"
   include: infra/_config.yml
   tags:
@@ -17,11 +16,17 @@
       - '!any'
       - network
 
+- name: Management Gateway - Check if firewall is already configured
+  stat: 
+    path: /etc/firewall
+  register: firewall_stat
+
 - name: Management Gateway - Enable Ipv4 Forward
   sysctl:
     name: net.ipv4.ip_forward
     value: "1"
     sysctl_set: yes
+  when: firewall_stat.stat.exists == False
 
 - name: Management Gateway - Enable POSTROUTING MASQUERADE
   iptables:
@@ -30,6 +35,7 @@
     out_interface: "{{ ansible_default_ipv4.interface }}"
     jump: MASQUERADE
     comment: Masquerade on Public IP
+  when: firewall_stat.stat.exists == False
 
 - name: Management Gateway - PreRouting to AWX
   iptables:
@@ -41,6 +47,7 @@
     destination_port: "22003"
     to_destination: "{{ network.private_range | ipaddr('address') | ipmath(2) }}:22"
     comment: Prerouting to AWX Server SSH Service
+  when: firewall_stat.stat.exists == False
 
 - name: Management Gateway - PreRouting to AWX
   iptables:
@@ -52,3 +59,4 @@
     destination_port: "80"
     to_destination: "{{ network.private_range | ipaddr('address') | ipmath(2) }}:80"
     comment: Prerouting to AWX Server HTTP Service
+  when: firewall_stat.stat.exists == False

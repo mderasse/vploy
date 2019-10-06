@@ -1,0 +1,18 @@
+{% for job_base in jobs_base.results if job_base.job_name == 'gateway' %}
+- job_template: "{{ job_base.job_template }}"
+  success:
+{% endfor %}
+{% for job_firewall in jobs_firewall.results if job_firewall.job_name == 'gateway' %}
+  - job_template: "{{ job_firewall.job_template }}"
+    success:
+{% endfor %}
+{% for job_webserver in jobs_webserver.results if job_webserver.job_name == 'gateway' %}
+    - job_template: "{{ job_webserver.job_template }}"
+{% endfor %}
+{% for job_base in jobs_base.results if job_base.job_name != 'gateway' %}
+    - job_template: "{{ job_base.job_template }}"
+      success:
+{% for job_firewall in jobs_firewall.results if job_firewall.job_name == job_base.job_name %}
+      - job_template: "{{ job_firewall.job_template }}"
+{% endfor %}
+{% endfor %}

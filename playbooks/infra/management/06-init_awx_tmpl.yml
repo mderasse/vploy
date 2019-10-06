@@ -12,6 +12,7 @@
     limit: "{{ job_name }}"
     state: "present"
     tower_config_file: "../generated/tower_cli.cfg"
+  register: jobs_base
   loop_control:
     loop_var: job_name
   with_items:
@@ -31,6 +32,7 @@
     limit: "{{ job_name }}"
     state: "present"
     tower_config_file: "../generated/tower_cli.cfg"
+  register: jobs_firewall
   loop_control:
     loop_var: job_name
   with_items:
@@ -50,7 +52,19 @@
     limit: "{{ job_name }}"
     state: "present"
     tower_config_file: "../generated/tower_cli.cfg"
+  register: jobs_webserver
   loop_control:
     loop_var: job_name
   with_items:
     - gateway
+
+# Create Workflow Template
+- name: "AWX {{ infra_name }} - Create All Workflow"
+  tower_workflow_template:
+    name: All
+    description: Configure the full Infrastructure
+    organization: Default
+    allow_simultaneous: yes
+    schema: "{{ lookup('template', 'templates/workflow_all.yml.j2') }}"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"

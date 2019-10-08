@@ -12,6 +12,17 @@
     state: present
     tower_config_file: "../generated/tower_cli.cfg"
 
+# Manage credentials type
+- name: Initialize AWX - Create vPloy Credential Type
+  tower_credential_type:
+    name: vPloy
+    description: vPloy Credential structure
+    kind: cloud
+    inputs: "{{ lookup('file', '../files/vploy_credential_type_input.json') }}"
+    injectors: "{{ lookup('file', '../files/vploy_credential_type_injector.json') }}"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+
 # Manage credentials
 - name: Initialize AWX - Add vPloy AWX user in Credentials
   tower_credential:
@@ -65,12 +76,12 @@
 
 - name: Initialize AWX - Add Bastion Machine Credential
   tower_credential:
-    name: "Bastion-SSH-Key"
-    description: "Key used by the bastion to access the machine"
+    name: "vPloy"
+    description: "vPloy Credentials"
     organization: "Default"
-    kind: ssh
-    username: bastion
-    ssh_key_data: "{{ lookup('file', '../generated/keys/bastion') }}"
+    credential_type: "vPloy"
+    inputs:
+      vploy_bastion_privkey: "{{ lookup('file', '../generated/keys/bastion') }}"
     state: present
     tower_config_file: "../generated/tower_cli.cfg"
 

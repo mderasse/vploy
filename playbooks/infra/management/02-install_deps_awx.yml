@@ -1,3 +1,11 @@
+- name: Collect only facts returned by facter
+  setup:
+    gather_subset:
+      - distribution
+      - distribution_major_version
+      - distribution_release
+      - distribution_version
+
 - name: Management AWX - Install Package Dependencies
   apt:
     name: "{{ packages }}"

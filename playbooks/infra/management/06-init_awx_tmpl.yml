@@ -58,6 +58,19 @@
   with_items:
     - gateway
 
+- name: "AWX {{ infra_name }} - Create Bastion Server Job Template on bastion"
+  tower_job_template:
+    name: "Bastion - Bastion Server"
+    description: "Configure Bastion Server on Bastion"
+    job_type: "run"
+    inventory: "vPloy"
+    project: "vPloy"
+    playbook: "types/bastion/bastion.yml"
+    credential: "Ansible-SSH-Key" # need to add vploy credential also but ...
+    limit: "bastion"
+    state: "present"
+    tower_config_file: "../generated/tower_cli.cfg"
+
 # Create Workflow Template
 - name: "AWX {{ infra_name }} - Create All Workflow"
   tower_workflow_template:

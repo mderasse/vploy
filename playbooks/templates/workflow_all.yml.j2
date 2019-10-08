@@ -14,5 +14,9 @@
       success:
 {% for job_firewall in jobs_firewall.results if job_firewall.job_name == job_base.job_name %}
       - job_template: "{{ job_firewall.job_template }}"
+{% if job_base.job_name == 'bastion' %}
+        success:
+          - job_template: "Bastion - Bastion Server"
+{% endif %}
 {% endfor %}
 {% endfor %}

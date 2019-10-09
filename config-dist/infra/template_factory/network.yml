@@ -1,4 +1,4 @@
 network:
   public_ip: <Public CIDR XXX.XXX.XXX.XXX/XX>
   private_range: 192.168.0.1/24
-  gateway: <Network Gateway>
+  gateway: <Public IP Gateway>

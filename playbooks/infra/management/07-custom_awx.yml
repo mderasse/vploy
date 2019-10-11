@@ -1,0 +1,45 @@
+# Custom AWX contain all customization that are linked to the Inventory
+# Add Groups
+- name: "AWX {{ infra_name }} - Create VPN group"
+  tower_group:
+    name: "vpn"
+    description: "Regroup vpn Servers"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: group_vpn
+
+# Add Hosts
+- name: "AWX {{ infra_name }} - Add VPN server"
+  tower_host:
+    name: "vpn.{{ infra_name }}"
+    description: "LDAP Management"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+    variables: 
+        ansible_host: "{{ network.private_range | ipaddr('address') | ipmath(3) }}"
+        ansible_port: "22"
+  register: host_vpn
+
+# Link Hosts to groups
+- name: "AWX {{ infra_name }} - Link Server to groups"
+  shell:
+    cmd: |
+     TOWER_HOST="{{ tower_cli_url }}" \
+     TOWER_USERNAME="admin" \
+     TOWER_PASSWORD="{{ password.awx }}" \
+     TOWER_VERIFY_SSL={{ tower_cli_verify_ssl }} \
+     ~/.local/bin/tower-cli host associate --host "{{ host_group.host_id }}" --group "{{ host_group.group_id }}"
+  loop_control:
+    loop_var: host_group
+  with_items:
+    # vsphere group
+    - group_id: "{{ group_vsphere.id }}"
+      host_id: "{{ host_vpn.id }}"
+    # infra group
+    - group_id: "{{ group_infra.id }}"
+      host_id: "{{ host_vpn.id }}"
+    # vpn group
+    - group_id: "{{ group_vpn.id }}"
+      host_id: "{{ host_vpn.id }}"

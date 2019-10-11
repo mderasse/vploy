@@ -188,3 +188,47 @@ resource "vsphere_virtual_machine" "awx" {
     }
   }
 }
+
+#===============================================================================
+# VPN deployement
+#===============================================================================
+resource "vsphere_virtual_machine" "vpn" {
+  name                        = "vpn.${var.infra-name}"
+  resource_pool_id            = "${data.vsphere_resource_pool.resource-pool.id}"
+  datastore_id                = "${data.vsphere_datastore.datastore_pcc-000020.id}"
+  folder                      = "/${var.vsphere-datacenter}/vm/${var.infra-name}"
+  num_cpus                    = 2
+  memory                      = 2048
+  memory_reservation          = 2048
+  guest_id                    = "ubuntu64Guest"
+
+  disk {
+    label = "disk0"
+    size  = "30"
+  }
+
+  network_interface {
+    network_id   = "${data.vsphere_network.portgroup_private.id}"
+    adapter_type = "vmxnet3"
+  }
+
+  clone {
+    template_uuid = "${data.vsphere_virtual_machine.template_ubuntu.id}"
+
+    customize {
+      network_interface {
+        ipv4_address = "${cidrhost(var.network-priv-range, 4)}"
+        ipv4_netmask = "${element(split("/", var.network-priv-range),1)}"
+      }
+
+      linux_options {
+        host_name = "vpn"
+        domain    = "${var.dns-domain}"
+      }
+
+      ipv4_gateway    = "${cidrhost(var.network-priv-range, 1)}"
+      dns_suffix_list = ["${var.dns-domain}"]
+      dns_server_list = "${split(",", var.dns-nameservers)}"
+    }
+  }
+}

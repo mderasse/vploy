@@ -1,0 +1,61 @@
+# Create Job Templates for custom
+# There is currently an issue on tower_job_template. The credential key is not working
+- name: "AWX {{ infra_name }} - Create Base Job Templates"
+  tower_job_template:
+    name: "{{ job_name | title }} - Base"
+    description: "Configure Base {{ job_name | title }}"
+    job_type: "run"
+    inventory: "vPloy"
+    project: "vPloy"
+    playbook: "types/{{ job_name }}/base.yml"
+    credential: "Ansible-SSH-Key"
+    limit: "{{ job_name }}"
+    state: "present"
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: jobs_base_custom
+  loop_control:
+    loop_var: job_name
+  with_items:
+    - vpn
+
+- name: "AWX {{ infra_name }} - Create Firewall Job Templates"
+  tower_job_template:
+    name: "{{ job_name | title }} - Firewall"
+    description: "Configure Firewall {{ job_name | title }}"
+    job_type: "run"
+    inventory: "vPloy"
+    project: "vPloy"
+    playbook: "types/{{ job_name }}/firewall.yml"
+    credential: "Ansible-SSH-Key"
+    limit: "{{ job_name }}"
+    state: "present"
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: jobs_firewall_custom
+  loop_control:
+    loop_var: job_name
+  with_items:
+    - vpn
+
+- name: "AWX {{ infra_name }} - Create OpenVpn Job Template on VPN"
+  tower_job_template:
+    name: "Vpn - OpenVpn"
+    description: "Configure OpenVpn on Vpn"
+    job_type: "run"
+    inventory: "vPloy"
+    project: "vPloy"
+    playbook: "types/vpn/openvpn.yml"
+    credential: "Ansible-SSH-Key"
+    limit: "vpn"
+    state: "present"
+    tower_config_file: "../generated/tower_cli.cfg"
+
+# Create Workflow Template
+- name: "AWX {{ infra_name }} - Create All Custom Workflow"
+  tower_workflow_template:
+    name: All - Custom
+    description: Configure the full Infrastructure include custom
+    organization: Default
+    allow_simultaneous: yes
+    schema: "{{ lookup('template', 'templates/workflow_all_custom.yml.j2') }}"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"

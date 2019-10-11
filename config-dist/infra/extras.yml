@@ -7,3 +7,8 @@ extras:
       pubkeys:
         - key: pubkey
           from_ip: ""
+  vpn:
+    port: 1194
+    proto: udp
+    route_traffic: false # Define if all traffic should go by the vpn or only local
+    client_to_client: true

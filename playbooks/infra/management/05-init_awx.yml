@@ -74,7 +74,7 @@
     state: present
     tower_config_file: "../generated/tower_cli.cfg"
 
-- name: Initialize AWX - Add Bastion Machine Credential
+- name: Initialize AWX - Add vPloy Credential
   tower_credential:
     name: "vPloy"
     description: "vPloy Credentials"

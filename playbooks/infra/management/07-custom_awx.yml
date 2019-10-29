@@ -1,4 +1,26 @@
-# Custom AWX contain all customization that are linked to the Inventory
+# Custom AWX contain all customization that are linked to the Inventory / tower_credential
+# Manage credentials type
+- name: "AWX {{ infra_name }} - Create Vpn Credential Type"
+  tower_credential_type:
+    name: vpn
+    description: vpn Credential structure
+    kind: cloud
+    inputs: "{{ lookup('template', '../templates/vpn_credential_type_input.json.j2') }}"
+    injectors: "{{ lookup('template', '../templates/vpn_credential_type_injector.json.j2') }}"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+
+# Manage credentials
+- name: "AWX {{ infra_name }} - Create Vpn Credential"
+  tower_credential:
+    name: "vpn"
+    description: "VPN Credentials"
+    organization: "Default"
+    credential_type: "vpn"
+    inputs: "{{ lookup('template', '../templates/vpn_credential_input.yml.j2') }}"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+
 # Add Groups
 - name: "AWX {{ infra_name }} - Create VPN group"
   tower_group:

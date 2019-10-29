@@ -54,7 +54,7 @@
   tower_credential:
     name: "Demo Credential"
     kind: "ssh"
-    organization: ""
+    organization: "Default"
     state: "absent"
     tower_config_file: "../generated/tower_cli.cfg"
 
@@ -64,3 +64,4 @@
     organization: "Default"
     state: absent
     tower_config_file: "../generated/tower_cli.cfg"
+  ignore_errors: true

@@ -8,7 +8,8 @@
     inventory: "vPloy"
     project: "vPloy"
     playbook: "types/{{ job_name }}/base.yml"
-    credential: "Ansible-SSH-Key"
+    credentials:
+      - "Ansible-SSH-Key"
     limit: "{{ job_name }}"
     state: "present"
     tower_config_file: "../generated/tower_cli.cfg"
@@ -17,6 +18,9 @@
     loop_var: job_name
   with_items:
     - vpn
+    - ntp
+    - dns
+    - smtp
 
 - name: "AWX {{ infra_name }} - Create Firewall Job Templates"
   tower_job_template:
@@ -26,7 +30,8 @@
     inventory: "vPloy"
     project: "vPloy"
     playbook: "types/{{ job_name }}/firewall.yml"
-    credential: "Ansible-SSH-Key"
+    credentials:
+      - "Ansible-SSH-Key"
     limit: "{{ job_name }}"
     state: "present"
     tower_config_file: "../generated/tower_cli.cfg"
@@ -35,6 +40,9 @@
     loop_var: job_name
   with_items:
     - vpn
+    - ntp
+    - dns
+    - smtp
 
 - name: "AWX {{ infra_name }} - Create OpenVpn Job Template on VPN"
   tower_job_template:
@@ -44,16 +52,61 @@
     inventory: "vPloy"
     project: "vPloy"
     playbook: "types/vpn/openvpn.yml"
-    credential: "Ansible-SSH-Key"
+    credentials:
+      - "Ansible-SSH-Key"
+      - "vpn"
     limit: "vpn"
     state: "present"
     tower_config_file: "../generated/tower_cli.cfg"
 
+- name: "AWX {{ infra_name }} - Create OpenVpn Web Job Template on VPN"
+  tower_job_template:
+    name: "Vpn - OpenVpn Web"
+    description: "Configure OpenVpn Web on Vpn"
+    job_type: "run"
+    inventory: "vPloy"
+    project: "vPloy"
+    playbook: "types/vpn/openvpn-web.yml"
+    credentials:
+      - "Ansible-SSH-Key"
+      - "vpn"
+    limit: "vpn"
+    state: "present"
+    tower_config_file: "../generated/tower_cli.cfg"
+
+- name: "AWX {{ infra_name }} - Create Bind Job for DNS"
+  tower_job_template:
+    name: "Dns - Bind"
+    description: "Configure Bind on Dns"
+    job_type: "run"
+    inventory: "vPloy"
+    project: "vPloy"
+    playbook: "types/dns/bind.yml"
+    credentials:
+      - "Ansible-SSH-Key"
+    limit: "dns"
+    state: "present"
+    tower_config_file: "../generated/tower_cli.cfg"
+
+- name: "AWX {{ infra_name }} - Create Postfix Job for Smtp"
+  tower_job_template:
+    name: "Smtp - Postfix"
+    description: "Configure Postfix on Smtp"
+    job_type: "run"
+    inventory: "vPloy"
+    project: "vPloy"
+    playbook: "types/smtp/postfix.yml"
+    credentials:
+      - "Ansible-SSH-Key"
+    limit: "smtp"
+    state: "present"
+    tower_config_file: "../generated/tower_cli.cfg"
+
 # Create Workflow Template
-- name: "AWX {{ infra_name }} - Create All Custom Workflow"
+- name: "AWX {{ infra_name }} - Create {{ infra_name }} Custom Workflow"
   tower_workflow_template:
-    name: All - Custom
-    description: Configure the full Infrastructure include custom
+    name: "{{ infra_name }} - Custom"
+    description: "Configure the full {{ infra_name }} Infrastructure include custom"
     organization: Default
     allow_simultaneous: yes
     schema: "{{ lookup('template', 'templates/workflow_all_custom.yml.j2') }}"

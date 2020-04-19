@@ -6,9 +6,11 @@
   - job_template: "{{ job_firewall.job_template }}"
     success:
 {% endfor %}
+{% if jobs_webserver.results is defined %}
 {% for job_webserver in jobs_webserver.results if job_webserver.job_name == 'gateway' %}
     - job_template: "{{ job_webserver.job_template }}"
 {% endfor %}
+{% endif %}
 {% for job_base in jobs_base.results if job_base.job_name != 'gateway' %}
     - job_template: "{{ job_base.job_template }}"
       success:
@@ -20,6 +22,7 @@
 {% endif %}
 {% endfor %}
 {% endfor %}
+{% if jobs_base_custom.results is defined %}
 {% for job_base in jobs_base_custom.results %}
     - job_template: "{{ job_base.job_template }}"
       success:
@@ -28,6 +31,18 @@
 {% if job_base.job_name == 'vpn' %}
         success:
           - job_template: "Vpn - OpenVpn"
+            success:
+            - job_template: "Vpn - OpenVpn Web"
+{% elif job_base.job_name == 'dns' %}
+        success:
+          - job_template: "Dns - Bind"
+{% elif job_base.job_name == 'smtp' %}
+        success:
+          - job_template: "Smtp - Postfix"
+{% elif job_base.job_name == 'vrm-www' %}
+        success:
+          - job_template: "Vrm-Www - WebServer"
 {% endif %}
 {% endfor %}
 {% endfor %}
+{% endif %}

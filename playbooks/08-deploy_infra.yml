@@ -6,7 +6,17 @@
   vars_files:
     - ../config/infra/vsphere.yml
     - ../config/infra/passwords.yml
+    - ../config/awx.yml
+  collections:
+    - awx.awx
   tasks:
+
+  - name: Deploy Infra - Load tower_cli var
+    include_vars:
+      file: ../generated/tower_cli.cfg
+      name: tower_cli
+    tags:
+      - always
 
   - name: Deploy Infra - List infrastructure directory
     find:

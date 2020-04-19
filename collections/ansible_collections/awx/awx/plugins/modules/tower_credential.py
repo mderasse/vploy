@@ -60,25 +60,28 @@ options:
       description:
         - Name of credential type.
       required: False
-      version_added: "2.9"
+      version_added: "2.10"
+      type: str
     inputs:
       description:
         - >-
-          Enter inputs using either JSON or YAML syntax. Refer to the Ansible
-          Tower documentation for example syntax.
+          Credential inputs where the keys are var names used in templating.
+          Refer to the Ansible Tower documentation for example syntax.
       required: False
       version_added: "2.9"
+      type: dict
     host:
       description:
         - Host for this credential.
       type: str
     username:
       description:
-        - Username for this credential. access_key for AWS.
+        - Username for this credential. ``access_key`` for AWS.
       type: str
     password:
       description:
-        - Password for this credential. Use ASK for prompting. secret_key for AWS. api_key for RAX.
+        - Password for this credential. ``secret_key`` for AWS. ``api_key`` for RAX.
+        - Use "ASK" and launch in Tower to be prompted.
       type: str
     ssh_key_data:
       description:
@@ -87,7 +90,8 @@ options:
       type: str
     ssh_key_unlock:
       description:
-        - Unlock password for ssh_key. Use ASK for prompting.
+        - Unlock password for ssh_key.
+        - Use "ASK" and launch in Tower to be prompted.
       type: str
     authorize:
       description:
@@ -126,19 +130,23 @@ options:
     become_method:
       description:
         - Become method to use for privilege escalation.
-      choices: ["None", "sudo", "su", "pbrun", "pfexec", "pmrun"]
+        - Some examples are "None", "sudo", "su", "pbrun"
+        - Due to become plugins, these can be arbitrary
       type: str
     become_username:
       description:
-        - Become username. Use ASK for prompting.
+        - Become username.
+        - Use "ASK" and launch in Tower to be prompted.
       type: str
     become_password:
       description:
-        - Become password. Use ASK for prompting.
+        - Become password.
+        - Use "ASK" and launch in Tower to be prompted.
       type: str
     vault_password:
       description:
-        - Vault password. Use ASK for prompting.
+        - Vault password.
+        - Use "ASK" and launch in Tower to be prompted.
       type: str
     vault_id:
       description:
@@ -152,7 +160,7 @@ options:
       choices: ["present", "absent"]
       default: "present"
       type: str
-extends_documentation_fragment: tower
+extends_documentation_fragment: awx.awx.auth
 '''
 
 
@@ -177,10 +185,14 @@ EXAMPLES = '''
     ssh_key_data: "{{ lookup('file', '/tmp/id_rsa') }}"
     ssh_key_unlock: "passphrase"
 
+- name: Fetch private key
+  slurp:
+    src: '$HOME/.ssh/aws-private.pem'
+  register: aws_ssh_key
 - name: Add Credential Into Tower
   tower_credential:
     name: Workshop Credential
-    ssh_key_data: "/home/{{ansible_user}}/.ssh/aws-private.pem"
+    ssh_key_data: "{{ aws_ssh_key['content'] | b64decode }}"
     kind: ssh
     organization: Default
     tower_username: admin
@@ -202,7 +214,7 @@ EXAMPLES = '''
 import os
 
 from ansible.module_utils._text import to_text
-from ansible.module_utils.ansible_tower import TowerModule, tower_auth_config, tower_check_mode
+from ..module_utils.ansible_tower import TowerModule, tower_auth_config, tower_check_mode
 
 try:
     import tower_cli
@@ -231,9 +243,19 @@ KIND_CHOICES = {
 }
 
 
+OLD_INPUT_NAMES = (
+    'authorize', 'authorize_password', 'client',
+    'security_token', 'secret', 'tenant', 'subscription',
+    'domain', 'become_method', 'become_username',
+    'become_password', 'vault_password', 'project', 'host',
+    'username', 'password', 'ssh_key_data', 'vault_id',
+    'ssh_key_unlock'
+)
+
+
 def credential_type_for_kind(params):
     credential_type_res = tower_cli.get_resource('credential_type')
-    kind = params.pop('kind')
+    kind = params.get('kind')
     arguments = {'managed_by_tower': True}
     if kind == 'ssh':
         if params.get('vault_password'):
@@ -283,7 +305,14 @@ def main():
         vault_id=dict(),
     )
 
-    module = TowerModule(argument_spec=argument_spec, supports_check_mode=True)
+    mutually_exclusive = [
+        ('kind', 'credential_type')
+    ]
+    for input_name in OLD_INPUT_NAMES:
+        mutually_exclusive.append(('inputs', input_name))
+
+    module = TowerModule(argument_spec=argument_spec, supports_check_mode=True,
+                         mutually_exclusive=mutually_exclusive)
 
     name = module.params.get('name')
     organization = module.params.get('organization')
@@ -313,11 +342,14 @@ def main():
                 # resource
                 params['kind'] = module.params.get('kind')
             else:
-                if module.params.get('credential_type') and module.params.get('kind'):
-                    module.fail_json(msg='cannot specify both credential_type and kind', changed=False)
                 if module.params.get('credential_type'):
                     credential_type_res = tower_cli.get_resource('credential_type')
-                    credential_type = credential_type_res.get(name=module.params['credential_type'])
+                    try:
+                        credential_type = credential_type_res.get(name=module.params['credential_type'])
+                    except (exc.NotFound) as excinfo:
+                        module.fail_json(msg=(
+                            'Failed to update credential, credential_type not found: {0}'
+                        ).format(excinfo), changed=False)
                     params['credential_type'] = credential_type['id']
 
                     if module.params.get('inputs'):
@@ -346,7 +378,7 @@ def main():
                 data = module.params.get('ssh_key_data')
                 if os.path.exists(data):
                     module.deprecate(
-                        msg='ssh_key_data should be a string, not a path to a file. Use lookup(\'file\', \'/path/to/file\') instead',
+                        msg='ssh_key_data should be a string, not a path to a file.',
                         version="2.12"
                     )
                     if os.path.isdir(data):
@@ -359,12 +391,7 @@ def main():
             if module.params.get('vault_id', None) and module.params.get('kind') != 'vault':
                 module.fail_json(msg="Parameter 'vault_id' is only valid if parameter 'kind' is specified as 'vault'")
 
-            for key in ('authorize', 'authorize_password', 'client',
-                        'security_token', 'secret', 'tenant', 'subscription',
-                        'domain', 'become_method', 'become_username',
-                        'become_password', 'vault_password', 'project', 'host',
-                        'username', 'password', 'ssh_key_data', 'vault_id',
-                        'ssh_key_unlock'):
+            for key in OLD_INPUT_NAMES:
                 if 'kind' in params:
                     params[key] = module.params.get(key)
                 elif module.params.get(key):

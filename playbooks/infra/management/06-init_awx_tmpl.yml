@@ -8,7 +8,8 @@
     inventory: "vPloy"
     project: "vPloy"
     playbook: "types/{{ job_name }}/base.yml"
-    credential: "Ansible-SSH-Key"
+    credentials:
+      - "Ansible-SSH-Key"
     limit: "{{ job_name }}"
     state: "present"
     tower_config_file: "../generated/tower_cli.cfg"
@@ -28,7 +29,8 @@
     inventory: "vPloy"
     project: "vPloy"
     playbook: "types/{{ job_name }}/firewall.yml"
-    credential: "Ansible-SSH-Key"
+    credentials:
+      - "Ansible-SSH-Key"
     limit: "{{ job_name }}"
     state: "present"
     tower_config_file: "../generated/tower_cli.cfg"
@@ -48,7 +50,8 @@
     inventory: "vPloy"
     project: "vPloy"
     playbook: "types/{{ job_name }}/webserver.yml"
-    credential: "Ansible-SSH-Key"
+    credentials:
+      - "Ansible-SSH-Key"
     limit: "{{ job_name }}"
     state: "present"
     tower_config_file: "../generated/tower_cli.cfg"
@@ -66,16 +69,18 @@
     inventory: "vPloy"
     project: "vPloy"
     playbook: "types/bastion/bastion.yml"
-    credential: "Ansible-SSH-Key" # need to add vploy credential also but ...
+    credentials:
+      - "Ansible-SSH-Key"
+      - "vPloy"
     limit: "bastion"
     state: "present"
     tower_config_file: "../generated/tower_cli.cfg"
 
 # Create Workflow Template
-- name: "AWX {{ infra_name }} - Create All Workflow"
+- name: "AWX {{ infra_name }} - Create {{ infra_name }} Workflow"
   tower_workflow_template:
-    name: All
-    description: Configure the full Infrastructure
+    name: "{{ infra_name }}"
+    description: "Configure the full {{ infra_name }} Infrastructure"
     organization: Default
     allow_simultaneous: yes
     schema: "{{ lookup('template', 'templates/workflow_all.yml.j2') }}"

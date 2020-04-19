@@ -22,6 +22,17 @@
     - gnupg-agent
     - software-properties-common
 
+- name: Management AWX - Add Ansible Apt Key
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 93C4A3FD7BB9C367
+    state: present
+
+- name: Management AWX - Add Ansible SourceList
+  apt_repository:
+    repo: deb [arch=amd64] http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main
+    state: present
+
 - name: Management AWX - Add Docker Apt Key
   apt_key:
     url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg
@@ -46,8 +57,10 @@
     - docker-compose
     - ansible
     - git
+    - python-dev
     - python-setuptools
     - python-pip
+    - tar
 
 - name: Management AWX - Install PIP docker-compose
   pip:

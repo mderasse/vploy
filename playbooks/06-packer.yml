@@ -12,7 +12,7 @@
     
     # Generate Debian 10 Template
     - name: Debian 10 Template - Retrieve Information about the Template
-      vmware_vm_facts:
+      vmware_vm_info:
         hostname: "{{ vsphere.address }}"
         username: "{{ vsphere.username }}"
         password: "{{ password.vsphere }}"
@@ -59,7 +59,7 @@
 
     # Generate Ubuntu Template
     - name: Ubuntu Template - Retrieve Information about the Template
-      vmware_vm_facts:
+      vmware_vm_info:
         hostname: "{{ vsphere.address }}"
         username: "{{ vsphere.username }}"
         password: "{{ password.vsphere }}"

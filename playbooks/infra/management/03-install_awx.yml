@@ -1,8 +1,18 @@
+- name: Configure Awx - Creating Directory
+  file:
+    path: /home/ansible/awx
+    owner: ansible
+    group: ansible
+    mode: 0775
+    recurse: yes
+
 - name: Configure Awx - Download AWX
-  git:
-    repo: https://github.com/ansible/awx
+  unarchive:
+    src: https://github.com/ansible/awx/archive/{{ dependencies.awx }}.tar.gz
     dest: /home/ansible/awx
-    update: no
+    remote_src: yes
+    extra_opts: ["--strip-components=1"]
+    creates: /home/ansible/awx/installer/inventory
 
 # Required else AWX doesn't restart
 # https://github.com/ansible/awx/issues/3705
@@ -69,5 +79,5 @@
 # Without Pause here, we will delete data too early and init of awx might fail
 - name: Configure Awx - Waiting 3 minute for first Init
   pause:
-    minutes: 3
+    minutes: 5
   when: install_awx.changed 

@@ -31,11 +31,38 @@
     tower_config_file: "../generated/tower_cli.cfg"
   register: group_vpn
 
+- name: "AWX {{ infra_name }} - Create NTP group"
+  tower_group:
+    name: "ntp"
+    description: "Regroup NTP Servers"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: group_ntp
+
+- name: "AWX {{ infra_name }} - Create DNS group"
+  tower_group:
+    name: "dns"
+    description: "Regroup DNS Servers"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: group_dns
+
+- name: "AWX {{ infra_name }} - Create SMTP group"
+  tower_group:
+    name: "smtp"
+    description: "Regroup SMTP Servers"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: group_smtp
+
 # Add Hosts
 - name: "AWX {{ infra_name }} - Add VPN server"
   tower_host:
     name: "vpn.{{ infra_name }}"
-    description: "LDAP Management"
+    description: "VPN Management"
     inventory: "vPloy"
     state: present
     tower_config_file: "../generated/tower_cli.cfg"
@@ -43,6 +70,42 @@
         ansible_host: "{{ network.private_range | ipaddr('address') | ipmath(3) }}"
         ansible_port: "22"
   register: host_vpn
+
+- name: "AWX {{ infra_name }} - Add NTP server"
+  tower_host:
+    name: "ntp.{{ infra_name }}"
+    description: "NTP Management"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+    variables: 
+        ansible_host: "{{ network.private_range | ipaddr('address') | ipmath(4) }}"
+        ansible_port: "22"
+  register: host_ntp
+
+- name: "AWX {{ infra_name }} - Add DNS server"
+  tower_host:
+    name: "dns.{{ infra_name }}"
+    description: "DNS Management"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+    variables: 
+        ansible_host: "{{ network.private_range | ipaddr('address') | ipmath(5) }}"
+        ansible_port: "22"
+  register: host_dns
+
+- name: "AWX {{ infra_name }} - Add SMTP server"
+  tower_host:
+    name: "smtp.{{ infra_name }}"
+    description: "SMTP Management"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+    variables: 
+        ansible_host: "{{ network.private_range | ipaddr('address') | ipmath(6) }}"
+        ansible_port: "22"
+  register: host_smtp
 
 # Link Hosts to groups
 - name: "AWX {{ infra_name }} - Link Server to groups"
@@ -59,9 +122,30 @@
     # vsphere group
     - group_id: "{{ group_vsphere.id }}"
       host_id: "{{ host_vpn.id }}"
+    - group_id: "{{ group_vsphere.id }}"
+      host_id: "{{ host_ntp.id }}"
+    - group_id: "{{ group_vsphere.id }}"
+      host_id: "{{ host_dns.id }}"
+    - group_id: "{{ group_vsphere.id }}"
+      host_id: "{{ host_smtp.id }}"
     # infra group
     - group_id: "{{ group_infra.id }}"
       host_id: "{{ host_vpn.id }}"
+    - group_id: "{{ group_infra.id }}"
+      host_id: "{{ host_ntp.id }}"
+    - group_id: "{{ group_infra.id }}"
+      host_id: "{{ host_dns.id }}"
+    - group_id: "{{ group_infra.id }}"
+      host_id: "{{ host_smtp.id }}"
     # vpn group
     - group_id: "{{ group_vpn.id }}"
       host_id: "{{ host_vpn.id }}"
+    # ntp group
+    - group_id: "{{ group_ntp.id }}"
+      host_id: "{{ host_ntp.id }}"
+    # dns group
+    - group_id: "{{ group_dns.id }}"
+      host_id: "{{ host_dns.id }}"
+    # smtp group
+    - group_id: "{{ group_smtp.id }}"
+      host_id: "{{ host_smtp.id }}"

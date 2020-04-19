@@ -30,7 +30,6 @@
     description: Vploy AWX
     organization: Default
     kind: tower
-    validate_certs: false
     host: "http://{{ network.public_ip | ipaddr('address') }}"
     username: vploy
     password: "{{ vploy_awx_pwd }}"

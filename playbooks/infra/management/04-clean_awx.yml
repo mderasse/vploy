@@ -14,25 +14,33 @@
     url: "https://awx.{{ dns.domain }}"
   ignore_errors: true
   register: webserver_configured
+  tags:
+    - always
 
 - name: "Clean AWX - Set Fact for tower_cli with HTTPS"
   set_fact: 
     tower_cli_url: "https://awx.{{ dns.domain }}"
-    tower_cli_verify_ssl: "true"
+    tower_cli_verify_ssl: "false"
   when: webserver_configured.failed == False
+  tags:
+    - always
 
 - name: "Clean AWX - Set Fact for tower_cli with HTTP"
   set_fact: 
     tower_cli_url: "http://{{ network.public_ip | ipaddr('address') }}"
     tower_cli_verify_ssl: "false"
   when: webserver_configured.failed == True
+  tags:
+    - always
 
 - name: Clean AWX  - Generate Tower Cli Creds file
   template:
     src: templates/tower_cli.j2
     dest: ../generated/tower_cli.cfg
     mode: 0644
-
+  tags:
+    - always
+    
 - name: Clean AWX - Delete Demo Job Template
   tower_job_template:
     name: "Demo Job Template"
@@ -49,6 +57,7 @@
     organization: "Default"
     state: absent
     tower_config_file: "../generated/tower_cli.cfg"
+  ignore_errors: true # Fail if Project is deleted ... Have to skip error
 
 - name: Clean AWX - Delete Demo Credential
   tower_credential:

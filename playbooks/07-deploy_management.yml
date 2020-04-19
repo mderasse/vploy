@@ -39,6 +39,7 @@
   hosts: management-awx
   vars_files:
     - ../config/infra/passwords.yml
+    - ../config/dependencies.yml
   become: yes
   gather_facts: no
   tasks:
@@ -58,6 +59,7 @@
     local_action:
       module: uri
       url: "https://awx.{{ dns.domain }}"
+      validate_certs: false
     ignore_errors: true
     register: awx_configured_https
     become: no
@@ -97,6 +99,8 @@
     - ../config/infra/vsphere.yml
     - ../config/infra/passwords.yml
     - ../config/awx.yml
+  collections:
+    - awx.awx
   tasks:
   - name: Deploy Management - Clean and Initialize AWX
     include_tasks:

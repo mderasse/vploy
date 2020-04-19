@@ -16,7 +16,7 @@
       - job_template: "{{ job_firewall.job_template }}"
 {% if job_base.job_name == 'bastion' %}
         success:
-          - job_template: "Bastion - Bastion Server"
+          - job_template: "{{ infra_name | title }} - Bastion - Bastion Server"
 {% endif %}
 {% endfor %}
 {% endfor %}

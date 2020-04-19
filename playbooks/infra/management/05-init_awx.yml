@@ -129,7 +129,8 @@
     name: "{{ infra_name }}"
     description: "{{ infra_name }} Infrastructure"
     inventory: "vPloy"
-    variables: 
+    variables:
+      infra_name: "{{ infra_name }}"
       network: "{{ network }}"
       dns: "{{ dns }}"
       locale: "{{ locale }}"

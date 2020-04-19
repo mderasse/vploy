@@ -62,6 +62,36 @@
     - python-pip
     - tar
 
+- name: Check if docker dir have been moved
+  stat:
+    path: "/home/docker"
+  register: homedocker_stat
+
+- name: Move Docker Directory
+  when: not homedocker_stat.stat.exists
+  block:
+    - name: Stopped Docker service
+      service:
+        name: "docker"
+        state: stopped
+
+    - name: Move docker directory
+      command: mv /var/lib/docker /home/docker
+
+    - name: Change docker path in service
+      lineinfile:
+        path: /lib/systemd/system/docker.service
+        regexp: '^ExecStart='
+        line: ExecStart=/usr/bin/dockerd -g /home/docker -H fd:// --containerd=/run/containerd/containerd.sock
+
+    - name: reload systemd
+      command: systemctl daemon-reload
+    
+    - name: Starting Docker service
+      service:
+        name: "docker"
+        state: started
+
 - name: Management AWX - Install PIP docker-compose
   pip:
     name: docker-compose

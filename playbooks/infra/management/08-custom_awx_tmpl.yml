@@ -2,15 +2,15 @@
 # There is currently an issue on tower_job_template. The credential key is not working
 - name: "AWX {{ infra_name }} - Create Base Job Templates"
   tower_job_template:
-    name: "{{ job_name | title }} - Base"
-    description: "Configure Base {{ job_name | title }}"
+    name: "{{ infra_name | title }} - {{ job_name | title }} - Base"
+    description: "Configure Base {{ infra_name | title }} - {{ job_name | title }}"
     job_type: "run"
     inventory: "vPloy"
     project: "vPloy"
     playbook: "types/{{ job_name }}/base.yml"
     credentials:
       - "Ansible-SSH-Key"
-    limit: "{{ job_name }}"
+    limit: "&{{ infra_name }}:&{{ job_name }}"
     state: "present"
     tower_config_file: "../generated/tower_cli.cfg"
   register: jobs_base_custom
@@ -24,15 +24,15 @@
 
 - name: "AWX {{ infra_name }} - Create Firewall Job Templates"
   tower_job_template:
-    name: "{{ job_name | title }} - Firewall"
-    description: "Configure Firewall {{ job_name | title }}"
+    name: "{{ infra_name | title }} - {{ job_name | title }} - Firewall"
+    description: "Configure Firewall {{ infra_name | title }} - {{ job_name | title }}"
     job_type: "run"
     inventory: "vPloy"
     project: "vPloy"
     playbook: "types/{{ job_name }}/firewall.yml"
     credentials:
       - "Ansible-SSH-Key"
-    limit: "{{ job_name }}"
+    limit: "&{{ infra_name }}:&{{ job_name }}"
     state: "present"
     tower_config_file: "../generated/tower_cli.cfg"
   register: jobs_firewall_custom
@@ -46,7 +46,7 @@
 
 - name: "AWX {{ infra_name }} - Create OpenVpn Job Template on VPN"
   tower_job_template:
-    name: "Vpn - OpenVpn"
+    name: "{{ infra_name | title }} - Vpn - OpenVpn"
     description: "Configure OpenVpn on Vpn"
     job_type: "run"
     inventory: "vPloy"
@@ -55,13 +55,13 @@
     credentials:
       - "Ansible-SSH-Key"
       - "vpn"
-    limit: "vpn"
+    limit: "&{{ infra_name }}:&vpn"
     state: "present"
     tower_config_file: "../generated/tower_cli.cfg"
 
 - name: "AWX {{ infra_name }} - Create OpenVpn Web Job Template on VPN"
   tower_job_template:
-    name: "Vpn - OpenVpn Web"
+    name: "{{ infra_name | title }} - Vpn - OpenVpn Web"
     description: "Configure OpenVpn Web on Vpn"
     job_type: "run"
     inventory: "vPloy"
@@ -70,13 +70,13 @@
     credentials:
       - "Ansible-SSH-Key"
       - "vpn"
-    limit: "vpn"
+    limit: "&{{ infra_name }}:&vpn"
     state: "present"
     tower_config_file: "../generated/tower_cli.cfg"
 
 - name: "AWX {{ infra_name }} - Create Bind Job for DNS"
   tower_job_template:
-    name: "Dns - Bind"
+    name: "{{ infra_name | title }} - Dns - Bind"
     description: "Configure Bind on Dns"
     job_type: "run"
     inventory: "vPloy"
@@ -84,13 +84,13 @@
     playbook: "types/dns/bind.yml"
     credentials:
       - "Ansible-SSH-Key"
-    limit: "dns"
+    limit: "&{{ infra_name }}:&dns"
     state: "present"
     tower_config_file: "../generated/tower_cli.cfg"
 
 - name: "AWX {{ infra_name }} - Create Postfix Job for Smtp"
   tower_job_template:
-    name: "Smtp - Postfix"
+    name: "{{ infra_name | title }} - Smtp - Postfix"
     description: "Configure Postfix on Smtp"
     job_type: "run"
     inventory: "vPloy"
@@ -98,7 +98,7 @@
     playbook: "types/smtp/postfix.yml"
     credentials:
       - "Ansible-SSH-Key"
-    limit: "smtp"
+    limit: "&{{ infra_name }}:&smtp"
     state: "present"
     tower_config_file: "../generated/tower_cli.cfg"
 

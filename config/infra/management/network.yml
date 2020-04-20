@@ -1,0 +1,5 @@
+network:
+  public_ip: <Public CIDR XXX.XXX.XXX.XXX/XX>
+  private_range: 192.168.2.1/24
+  gateway: <Public IP Gateway>
+  vlan: 1001

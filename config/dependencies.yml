@@ -1,0 +1,6 @@
+dependencies:
+  terraform_version: 0.12.20
+  packer_version: 1.5.2
+  debian10_version: 10.3.0
+  ubuntu_version: "18.04.4"
+  awx: 9.2.0

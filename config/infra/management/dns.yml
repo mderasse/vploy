@@ -1,0 +1,6 @@
+dns:
+  nameservers:
+    - 192.168.2.6
+    - 8.8.8.8
+    - 8.8.4.4
+  domain: <infrastructure domain>

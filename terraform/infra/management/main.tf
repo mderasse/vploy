@@ -37,13 +37,13 @@ data "vsphere_virtual_machine" "template_ubuntu" {
 #===============================================================================
 # Load Datastores
 #===============================================================================
-data "vsphere_datastore" "datastore_pcc-000020" {
-  name          = "pcc-000020"
+data "vsphere_datastore" "datastore_1" {
+  name          = "datastore_1"
   datacenter_id = "${data.vsphere_datacenter.datacenter.id}"
 }
 
-data "vsphere_datastore" "datastore_pcc-000026" {
-  name          = "pcc-000026"
+data "vsphere_datastore" "datastore_2" {
+  name          = "datastore_2"
   datacenter_id = "${data.vsphere_datacenter.datacenter.id}"
 }
 
@@ -51,14 +51,14 @@ data "vsphere_datastore" "datastore_pcc-000026" {
 # Gateway deployement
 #===============================================================================
 resource "vsphere_virtual_machine" "gateway" {
-  name                        = "gateway.${var.infra-name}"
-  resource_pool_id            = "${data.vsphere_resource_pool.resource-pool.id}"
-  datastore_id                = "${data.vsphere_datastore.datastore_pcc-000020.id}"
-  folder                      = "/${var.vsphere-datacenter}/vm/${var.infra-name}"
-  num_cpus                    = 1
-  memory                      = 512
-  memory_reservation          = 512
-  guest_id                    = "ubuntu64Guest"
+  name               = "gateway.${var.infra-name}"
+  resource_pool_id   = "${data.vsphere_resource_pool.resource-pool.id}"
+  datastore_id       = "${data.vsphere_datastore.datastore_1.id}"
+  folder             = "/${var.vsphere-datacenter}/vm/${var.infra-name}"
+  num_cpus           = 1
+  memory             = 512
+  memory_reservation = 512
+  guest_id           = "ubuntu64Guest"
 
   disk {
     label = "disk0"
@@ -80,13 +80,13 @@ resource "vsphere_virtual_machine" "gateway" {
 
     customize {
       network_interface {
-        ipv4_address = "${element(split("/", var.network-public-ip),0)}"
-        ipv4_netmask = "${element(split("/", var.network-public-ip),1)}"
+        ipv4_address = "${element(split("/", var.network-public-ip), 0)}"
+        ipv4_netmask = "${element(split("/", var.network-public-ip), 1)}"
       }
 
       network_interface {
         ipv4_address = "${cidrhost(var.network-priv-range, 1)}"
-        ipv4_netmask = "${element(split("/", var.network-priv-range),1)}"
+        ipv4_netmask = "${element(split("/", var.network-priv-range), 1)}"
       }
 
       linux_options {
@@ -105,14 +105,14 @@ resource "vsphere_virtual_machine" "gateway" {
 # Bastion deployement
 #===============================================================================
 resource "vsphere_virtual_machine" "bastion" {
-  name                        = "bastion.${var.infra-name}"
-  resource_pool_id            = "${data.vsphere_resource_pool.resource-pool.id}"
-  datastore_id                = "${data.vsphere_datastore.datastore_pcc-000020.id}"
-  folder                      = "/${var.vsphere-datacenter}/vm/${var.infra-name}"
-  num_cpus                    = 1
-  memory                      = 512
-  memory_reservation          = 512
-  guest_id                    = "ubuntu64Guest"
+  name               = "bastion.${var.infra-name}"
+  resource_pool_id   = "${data.vsphere_resource_pool.resource-pool.id}"
+  datastore_id       = "${data.vsphere_datastore.datastore_1.id}"
+  folder             = "/${var.vsphere-datacenter}/vm/${var.infra-name}"
+  num_cpus           = 1
+  memory             = 512
+  memory_reservation = 512
+  guest_id           = "ubuntu64Guest"
 
   disk {
     label = "disk0"
@@ -130,7 +130,7 @@ resource "vsphere_virtual_machine" "bastion" {
     customize {
       network_interface {
         ipv4_address = "${cidrhost(var.network-priv-range, 2)}"
-        ipv4_netmask = "${element(split("/", var.network-priv-range),1)}"
+        ipv4_netmask = "${element(split("/", var.network-priv-range), 1)}"
       }
 
       linux_options {
@@ -149,14 +149,14 @@ resource "vsphere_virtual_machine" "bastion" {
 # AWX deployement
 #===============================================================================
 resource "vsphere_virtual_machine" "awx" {
-  name                        = "awx.${var.infra-name}"
-  resource_pool_id            = "${data.vsphere_resource_pool.resource-pool.id}"
-  datastore_id                = "${data.vsphere_datastore.datastore_pcc-000020.id}"
-  folder                      = "/${var.vsphere-datacenter}/vm/${var.infra-name}"
-  num_cpus                    = 4
-  memory                      = 8192
-  memory_reservation          = 8192
-  guest_id                    = "ubuntu64Guest"
+  name               = "awx.${var.infra-name}"
+  resource_pool_id   = "${data.vsphere_resource_pool.resource-pool.id}"
+  datastore_id       = "${data.vsphere_datastore.datastore_1.id}"
+  folder             = "/${var.vsphere-datacenter}/vm/${var.infra-name}"
+  num_cpus           = 4
+  memory             = 8192
+  memory_reservation = 8192
+  guest_id           = "ubuntu64Guest"
 
   disk {
     label = "disk0"
@@ -174,11 +174,188 @@ resource "vsphere_virtual_machine" "awx" {
     customize {
       network_interface {
         ipv4_address = "${cidrhost(var.network-priv-range, 3)}"
-        ipv4_netmask = "${element(split("/", var.network-priv-range),1)}"
+        ipv4_netmask = "${element(split("/", var.network-priv-range), 1)}"
       }
 
       linux_options {
         host_name = "awx"
+        domain    = "${var.dns-domain}"
+      }
+
+      ipv4_gateway    = "${cidrhost(var.network-priv-range, 1)}"
+      dns_suffix_list = ["${var.dns-domain}"]
+      dns_server_list = "${split(",", var.dns-nameservers)}"
+    }
+  }
+}
+
+#===============================================================================
+# VPN deployement
+#===============================================================================
+resource "vsphere_virtual_machine" "vpn" {
+  name               = "vpn.${var.infra-name}"
+  resource_pool_id   = "${data.vsphere_resource_pool.resource-pool.id}"
+  datastore_id       = "${data.vsphere_datastore.datastore_1.id}"
+  folder             = "/${var.vsphere-datacenter}/vm/${var.infra-name}"
+  num_cpus           = 2
+  memory             = 2048
+  memory_reservation = 2048
+  guest_id           = "ubuntu64Guest"
+
+  disk {
+    label = "disk0"
+    size  = "30"
+  }
+
+  network_interface {
+    network_id   = "${data.vsphere_network.portgroup_private.id}"
+    adapter_type = "vmxnet3"
+  }
+
+  clone {
+    template_uuid = "${data.vsphere_virtual_machine.template_ubuntu.id}"
+
+    customize {
+      network_interface {
+        ipv4_address = "${cidrhost(var.network-priv-range, 4)}"
+        ipv4_netmask = "${element(split("/", var.network-priv-range), 1)}"
+      }
+
+      linux_options {
+        host_name = "vpn"
+        domain    = "${var.dns-domain}"
+      }
+
+      ipv4_gateway    = "${cidrhost(var.network-priv-range, 1)}"
+      dns_suffix_list = ["${var.dns-domain}"]
+      dns_server_list = "${split(",", var.dns-nameservers)}"
+    }
+  }
+}
+
+
+#===============================================================================
+# NTP deployement
+#===============================================================================
+resource "vsphere_virtual_machine" "ntp" {
+  name               = "ntp.${var.infra-name}"
+  resource_pool_id   = "${data.vsphere_resource_pool.resource-pool.id}"
+  datastore_id       = "${data.vsphere_datastore.datastore_1.id}"
+  folder             = "/${var.vsphere-datacenter}/vm/${var.infra-name}"
+  num_cpus           = 1
+  memory             = 512
+  memory_reservation = 512
+  guest_id           = "ubuntu64Guest"
+
+  disk {
+    label = "disk0"
+    size  = "30"
+  }
+
+  network_interface {
+    network_id   = "${data.vsphere_network.portgroup_private.id}"
+    adapter_type = "vmxnet3"
+  }
+
+  clone {
+    template_uuid = "${data.vsphere_virtual_machine.template_ubuntu.id}"
+
+    customize {
+      network_interface {
+        ipv4_address = "${cidrhost(var.network-priv-range, 5)}"
+        ipv4_netmask = "${element(split("/", var.network-priv-range), 1)}"
+      }
+
+      linux_options {
+        host_name = "ntp"
+        domain    = "${var.dns-domain}"
+      }
+
+      ipv4_gateway    = "${cidrhost(var.network-priv-range, 1)}"
+      dns_suffix_list = ["${var.dns-domain}"]
+      dns_server_list = "${split(",", var.dns-nameservers)}"
+    }
+  }
+}
+
+#===============================================================================
+# DNS deployement
+#===============================================================================
+resource "vsphere_virtual_machine" "dns" {
+  name               = "dns.${var.infra-name}"
+  resource_pool_id   = "${data.vsphere_resource_pool.resource-pool.id}"
+  datastore_id       = "${data.vsphere_datastore.datastore_1.id}"
+  folder             = "/${var.vsphere-datacenter}/vm/${var.infra-name}"
+  num_cpus           = 1
+  memory             = 1024
+  memory_reservation = 1024
+  guest_id           = "ubuntu64Guest"
+
+  disk {
+    label = "disk0"
+    size  = "30"
+  }
+
+  network_interface {
+    network_id   = "${data.vsphere_network.portgroup_private.id}"
+    adapter_type = "vmxnet3"
+  }
+
+  clone {
+    template_uuid = "${data.vsphere_virtual_machine.template_ubuntu.id}"
+
+    customize {
+      network_interface {
+        ipv4_address = "${cidrhost(var.network-priv-range, 6)}"
+        ipv4_netmask = "${element(split("/", var.network-priv-range), 1)}"
+      }
+
+      linux_options {
+        host_name = "dns"
+        domain    = "${var.dns-domain}"
+      }
+
+      ipv4_gateway    = "${cidrhost(var.network-priv-range, 1)}"
+      dns_suffix_list = ["${var.dns-domain}"]
+      dns_server_list = "${split(",", var.dns-nameservers)}"
+    }
+  }
+}
+
+#===============================================================================
+# SMTP deployement
+#===============================================================================
+resource "vsphere_virtual_machine" "smtp" {
+  name               = "smtp.${var.infra-name}"
+  resource_pool_id   = "${data.vsphere_resource_pool.resource-pool.id}"
+  datastore_id       = "${data.vsphere_datastore.datastore_1.id}"
+  folder             = "/${var.vsphere-datacenter}/vm/${var.infra-name}"
+  num_cpus           = 2
+  memory             = 2048
+  memory_reservation = 2048
+  guest_id           = "ubuntu64Guest"
+
+  disk {
+    label = "disk0"
+    size  = "30"
+  }
+
+  network_interface {
+    network_id   = "${data.vsphere_network.portgroup_private.id}"
+    adapter_type = "vmxnet3"
+  }
+
+  clone {
+    template_uuid = "${data.vsphere_virtual_machine.template_ubuntu.id}"
+
+    customize {
+      network_interface {
+        ipv4_address = "${cidrhost(var.network-priv-range, 7)}"
+        ipv4_netmask = "${element(split("/", var.network-priv-range), 1)}"
+      }
+
+      linux_options {
+        host_name = "smtp"
         domain    = "${var.dns-domain}"
       }
 

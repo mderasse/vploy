@@ -33,22 +33,6 @@
       group: root
       mode: 0755
 
-  - name: Packer - Download Packer vSphere Clone {{ dependencies.packer_vsphere_version }}
-    get_url:
-      url: https://github.com/jetbrains-infra/packer-builder-vsphere/releases/download/v{{ dependencies.packer_vsphere_version }}/packer-builder-vsphere-clone.linux
-      dest: /usr/bin/packer-builder-vsphere-clone.linux
-      mode: 0755
-      owner: root
-      group: root
-
-  - name: Packer - Download Packer vSphere Iso {{ dependencies.packer_vsphere_version }}
-    get_url:
-      url: https://github.com/jetbrains-infra/packer-builder-vsphere/releases/download/v{{ dependencies.packer_vsphere_version }}/packer-builder-vsphere-iso.linux
-      dest: /usr/bin/packer-builder-vsphere-iso.linux
-      mode: 0755
-      owner: root
-      group: root
-
   - name: Python PIP - Install Python PIP Package
     apt:
       name: python-pip

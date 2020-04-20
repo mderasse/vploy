@@ -1,0 +1,151 @@
+# Custom AWX contain all customization that are linked to the Inventory / tower_credential
+# Manage credentials type
+- name: "AWX {{ infra_name }} - Create Vpn Credential Type"
+  tower_credential_type:
+    name: vpn
+    description: vpn Credential structure
+    kind: cloud
+    inputs: "{{ lookup('template', '../templates/vpn_credential_type_input.json.j2') }}"
+    injectors: "{{ lookup('template', '../templates/vpn_credential_type_injector.json.j2') }}"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+
+# Manage credentials
+- name: "AWX {{ infra_name }} - Create Vpn Credential"
+  tower_credential:
+    name: "vpn"
+    description: "VPN Credentials"
+    organization: "Default"
+    credential_type: "vpn"
+    inputs: "{{ lookup('template', '../templates/vpn_credential_input.yml.j2') }}"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+
+# Add Groups
+- name: "AWX {{ infra_name }} - Create VPN group"
+  tower_group:
+    name: "vpn"
+    description: "Regroup vpn Servers"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: group_vpn
+
+- name: "AWX {{ infra_name }} - Create NTP group"
+  tower_group:
+    name: "ntp"
+    description: "Regroup NTP Servers"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: group_ntp
+
+- name: "AWX {{ infra_name }} - Create DNS group"
+  tower_group:
+    name: "dns"
+    description: "Regroup DNS Servers"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: group_dns
+
+- name: "AWX {{ infra_name }} - Create SMTP group"
+  tower_group:
+    name: "smtp"
+    description: "Regroup SMTP Servers"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: group_smtp
+
+# Add Hosts
+- name: "AWX {{ infra_name }} - Add VPN server"
+  tower_host:
+    name: "vpn.{{ infra_name }}"
+    description: "VPN Management"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+    variables: 
+        ansible_host: "{{ network.private_range | ipaddr('address') | ipmath(3) }}"
+        ansible_port: "22"
+  register: host_vpn
+
+- name: "AWX {{ infra_name }} - Add NTP server"
+  tower_host:
+    name: "ntp.{{ infra_name }}"
+    description: "NTP Management"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+    variables: 
+        ansible_host: "{{ network.private_range | ipaddr('address') | ipmath(4) }}"
+        ansible_port: "22"
+  register: host_ntp
+
+- name: "AWX {{ infra_name }} - Add DNS server"
+  tower_host:
+    name: "dns.{{ infra_name }}"
+    description: "DNS Management"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+    variables: 
+        ansible_host: "{{ network.private_range | ipaddr('address') | ipmath(5) }}"
+        ansible_port: "22"
+  register: host_dns
+
+- name: "AWX {{ infra_name }} - Add SMTP server"
+  tower_host:
+    name: "smtp.{{ infra_name }}"
+    description: "SMTP Management"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+    variables: 
+        ansible_host: "{{ network.private_range | ipaddr('address') | ipmath(6) }}"
+        ansible_port: "22"
+  register: host_smtp
+
+# Link Hosts to groups
+- name: "AWX {{ infra_name }} - Link Server to groups"
+  shell:
+    cmd: |
+     TOWER_HOST="{{ tower_cli_url }}" \
+     TOWER_USERNAME="admin" \
+     TOWER_PASSWORD="{{ password.awx }}" \
+     TOWER_VERIFY_SSL={{ tower_cli_verify_ssl }} \
+     ~/.local/bin/tower-cli host associate --host "{{ host_group.host_id }}" --group "{{ host_group.group_id }}"
+  loop_control:
+    loop_var: host_group
+  with_items:
+    # vsphere group
+    - group_id: "{{ group_vsphere.id }}"
+      host_id: "{{ host_vpn.id }}"
+    - group_id: "{{ group_vsphere.id }}"
+      host_id: "{{ host_ntp.id }}"
+    - group_id: "{{ group_vsphere.id }}"
+      host_id: "{{ host_dns.id }}"
+    - group_id: "{{ group_vsphere.id }}"
+      host_id: "{{ host_smtp.id }}"
+    # infra group
+    - group_id: "{{ group_infra.id }}"
+      host_id: "{{ host_vpn.id }}"
+    - group_id: "{{ group_infra.id }}"
+      host_id: "{{ host_ntp.id }}"
+    - group_id: "{{ group_infra.id }}"
+      host_id: "{{ host_dns.id }}"
+    - group_id: "{{ group_infra.id }}"
+      host_id: "{{ host_smtp.id }}"
+    # vpn group
+    - group_id: "{{ group_vpn.id }}"
+      host_id: "{{ host_vpn.id }}"
+    # ntp group
+    - group_id: "{{ group_ntp.id }}"
+      host_id: "{{ host_ntp.id }}"
+    # dns group
+    - group_id: "{{ group_dns.id }}"
+      host_id: "{{ host_dns.id }}"
+    # smtp group
+    - group_id: "{{ group_smtp.id }}"
+      host_id: "{{ host_smtp.id }}"

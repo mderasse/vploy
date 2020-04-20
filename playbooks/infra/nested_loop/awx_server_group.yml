@@ -1,0 +1,11 @@
+- name: "AWX {{ infra_name }} - Link Server to groups"
+  shell:
+    cmd: |
+     TOWER_HOST="{{ tower_cli.host }}" \
+     TOWER_USERNAME="admin" \
+     TOWER_PASSWORD="{{ password.awx }}" \
+     TOWER_VERIFY_SSL={{ tower_cli.verify_ssl }} \
+     ~/.local/bin/tower-cli host associate --host "{{ host.id }}" --group "{{ hosts_group.group_id }}"
+  loop_control:
+    loop_var: host
+  with_items: "{{ hosts_group.hosts_id }}"

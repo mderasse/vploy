@@ -1,0 +1,29 @@
+# Contain extra config used by awx jobs
+extras:
+  trusted_ips:
+    - <ip A> # List of Ips that can access ntp, dns, smtp, ... in the management infrastructure
+    - <ip B>
+  mail: example@example.org # Mail that will receive reports from fail2ban, rkhunter, smtp, ....
+  ntp_servers:
+    - <ntp server> # NTP server used by management infrastructure 
+  bastion_users:
+    - username: user1
+      pubkeys:
+        - key: <pubkey>
+          from_ip: <authorized ip>
+  vpn:
+    port: 8443
+    proto: udp
+    route_traffic: true # Define if all traffic should go by the vpn or only local
+    client_to_client: true
+  smtp:
+    relay: 
+      ip: "<smtp IP>" # dnspython issue with ansible ....
+      address: <smtp domain>
+      port: 25
+    # management domain added by default
+    extra_domains: # Domain managed in smtp
+      - <domain A>
+      - <domain B>
+    # public range added by default
+    extra_networks: []

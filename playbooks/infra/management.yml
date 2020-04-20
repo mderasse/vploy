@@ -7,7 +7,7 @@
     - always
 
 - name: "{{ infra_name }} - Load Configs"
-  include: infra/_config.yml
+  include_tasks: infra/_config.yml
   tags:
     - always
 

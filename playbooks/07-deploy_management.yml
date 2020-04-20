@@ -39,10 +39,10 @@
   hosts: management-awx
   vars_files:
     - ../config/infra/passwords.yml
+    - ../config/dependencies.yml
   become: yes
   gather_facts: no
   tasks:
-
 
   - name: "Deploy Management -  Set Infra Name Fact"
     set_fact:
@@ -98,6 +98,8 @@
     - ../config/infra/vsphere.yml
     - ../config/infra/passwords.yml
     - ../config/awx.yml
+  collections:
+    - awx.awx
   tasks:
   - name: Deploy Management - Clean and Initialize AWX
     include_tasks:
@@ -112,5 +114,7 @@
       - 04-clean_awx
       - 05-init_awx
       - 06-init_awx_tmpl
+      - 07-custom_awx
+      - 08-custom_awx_tmpl
     tags:
       - always

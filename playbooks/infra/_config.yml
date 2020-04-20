@@ -46,10 +46,18 @@
   with_first_found:
     - ../config/infra/{{ infra_name }}/passwords.yml
     - ../config/infra/passwords.yml # Default
+  no_log: true
   tags:
     - always
 
 - name: "{{ infra_name }} - Load Network config"
   include_vars: ../config/infra/{{ infra_name }}/network.yml
+  tags:
+    - always
+
+- name: 
+  include_vars:
+    file: ../config/infra/management/network.yml
+    name: management_infra_network
   tags:
     - always

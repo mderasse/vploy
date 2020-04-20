@@ -1,0 +1,31 @@
+{
+ "collection_info": {
+  "description": "Ansible modules that interact with the AWX API.", 
+  "repository": "https://github.com/ansible/awx", 
+  "tags": [], 
+  "dependencies": {}, 
+  "authors": [
+   "Wayne Witzel III (@wwitzel3)", 
+   "Chris Meyers <cmeyers@redhat.com>"
+  ], 
+  "issues": "https://github.com/ansible/awx/issues", 
+  "name": "awx", 
+  "license": [
+   "GPL-3.0-only"
+  ], 
+  "documentation": "https://docs.ansible.com/ansible/latest/modules/list_of_web_infrastructure_modules.html#ansible-tower", 
+  "namespace": "awx", 
+  "version": "9.0.1", 
+  "readme": "README.md", 
+  "license_file": null, 
+  "homepage": "https://ansible.com"
+ }, 
+ "file_manifest_file": {
+  "format": 1, 
+  "ftype": "file", 
+  "chksum_sha256": "d14eef4b604d81ac3d94f89610f55d8b60b18078664569e8fffc4d54cf832d2b", 
+  "name": "FILES.json", 
+  "chksum_type": "sha256"
+ }, 
+ "format": 1
+}

@@ -1,0 +1,78 @@
+{% for job_base in jobs_base.results if job_base.job_name == 'gateway' %}
+- job_template: "{{ job_base.job_template }}"
+  success:
+{% endfor %}
+{% for job_firewall in jobs_firewall.results if job_firewall.job_name == 'gateway' %}
+  - job_template: "{{ job_firewall.job_template }}"
+    success:
+{% endfor %}
+{% if jobs_webserver.results is defined %}
+{% for job_webserver in jobs_webserver.results if job_webserver.job_name == 'gateway' %}
+    - job_template: "{{ job_webserver.job_template }}"
+{% endfor %}
+{% endif %}
+{% for job_base in jobs_base.results if job_base.job_name != 'gateway' %}
+    - job_template: "{{ job_base.job_template }}"
+      success:
+{% for job_firewall in jobs_firewall.results if job_firewall.job_name == job_base.job_name %}
+      - job_template: "{{ job_firewall.job_template }}"
+{% if job_base.job_name == 'bastion' %}
+        success:
+          - job_template: "{{ infra_name | title }} - Bastion - Bastion Server"
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% if jobs_base_custom.results is defined %}
+{% for job_base in jobs_base_custom.results %}
+    - job_template: "{{ job_base.job_template }}"
+      success:
+{% for job_firewall in jobs_firewall_custom.results if job_firewall.job_name == job_base.job_name %}
+      - job_template: "{{ job_firewall.job_template }}"
+{% if job_base.job_name == 'vpn' %}
+        success:
+          - job_template: "{{ infra_name | title }} - Vpn - OpenVpn"
+            success:
+            - job_template: "{{ infra_name | title }} - Vpn - OpenVpn Web"
+{% elif job_base.job_name == 'dns' %}
+        success:
+          - job_template: "{{ infra_name | title }} - Dns - Bind"
+{% elif job_base.job_name == 'smtp' %}
+        success:
+          - job_template: "{{ infra_name | title }} - Smtp - Postfix"
+{% elif job_base.job_name == 'vrm-www' %}
+        success:
+          - job_template: "{{ infra_name | title }} - Vrm-Www - WebServer"
+            success:
+            - job_template: "{{ infra_name | title }} - Vrm-Www - Poolstats"
+{% elif job_base.job_name == 'mysql' %}
+        success:
+          - job_template: "{{ infra_name | title }} - Mysql - Mysql"
+{% elif job_base.job_name == 'vrm-wallet' %}
+        success:
+          - job_template: "{{ infra_name | title }} - Vrm-Wallet - Wallet"
+{% elif job_base.job_name == 'redis' %}
+        success:
+          - job_template: "{{ infra_name | title }} - Redis - Redis"
+{% elif job_base.job_name == 'vrm-nomp' %}
+        success:
+          - job_template: "{{ infra_name | title }} - Vrm-Nomp - Nomp"
+{% elif job_base.job_name == 'plex' %}
+        success:
+          - job_template: "{{ infra_name | title }} - Plex - Autofs"
+            success:
+              - job_template: "{{ infra_name | title }} - Plex - Plex"
+{% elif job_base.job_name == 'plex' %}
+        success:
+          - job_template: "{{ infra_name | title }} - Plex - Autofs"
+            success:
+              - job_template: "{{ infra_name | title }} - Plex - Plex"
+{% elif job_base.job_name == 'www' %}
+        success:
+          - job_template: "{{ infra_name | title }} - Www - WebServer"
+{% elif job_base.job_name == 'nextcloud' %}
+        success:
+          - job_template: "{{ infra_name | title }} - Nextcloud - WebServer"
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endif %}

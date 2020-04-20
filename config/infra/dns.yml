@@ -2,4 +2,4 @@ dns:
   nameservers:
     - 8.8.8.8
     - 8.8.4.4
-  domain: example.org
+  domain: infra-example

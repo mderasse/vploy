@@ -1,0 +1,6 @@
+dns:
+  nameservers:
+    - <public ip of management infrastructure>
+    - 8.8.8.8
+    - 8.8.4.4
+  domain: <domain of infra-example>

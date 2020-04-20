@@ -1,0 +1,17 @@
+# Contain extra config used by awx jobs
+extras:
+  trusted_ips:
+    - <ip A> # List of trusted ip
+    - <ip B>
+  mail: example@example.org # Mail that will receive reports from fail2ban, rkhunter, smtp, ....
+  ntp_servers:
+    - <ntp server> # NTP server, typically the one in management
+  smtp:
+    relay: 
+      ip: "<smtp IP>" # dnspython issue with ansible ....
+      address: <smtp domain>
+      port: 25
+  instances:
+    amount:
+      mysql: 1
+      www: 1

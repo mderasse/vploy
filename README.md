@@ -24,11 +24,36 @@ The goal of vPloy is to help the deployment of an Infrastructure as Code on a VM
 
 vPloy has been develop to be easily customizable and make that new infrastructure easy to be maintained, scale, ...
 
-## Getting Started
-
 ## Configuration
 
+All the configuration files are in config. For each infrastructure you wish to deploy you will have to create a new directory in infra.
+
+Because there are always exceptions, you will have to customize:
+ - terraform/infra/management/main.tf: Put your replace datastore_{X} by the name of your datastores
+
+## Getting Started
+
+You can launch the deployment of the infrastructure using the following command:
+```bash
+ansible-playbook deploy.yml --ask-vault
+```
+
+If you wish to delete the infrastructure you can launch: (it will delete everything !!!)
+```bash
+ansible-playbook destroy.yml --ask-vault
+```
+
+Playbooks have been constructed with a few tags to help deployment.
+
 ## Customization
+
+You can easily extend / create a new "infrastructure" by :
+    - Create a configuration directory into config/infra/<name of your infrastructure>.
+    - Contruct your terraform deployment in terraform/infra/<name of your infrastructure>
+    - Create the ansible tasks in playbooks/infra/<name of your infrastructure>.yml
+    - Create then ansible destroy tasks in playbooks/destroy/infra/<name of your infrastructure>.yml
+
+You can take a look at the infra-example files.
 
 ## Contributing
 

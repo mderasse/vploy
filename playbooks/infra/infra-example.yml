@@ -1,0 +1,381 @@
+- name: "{{ item }} - Set Infra Name Fact"
+  set_fact:
+    infra_name: "{{ item }}"
+  tags:
+    - always
+
+- name: "{{ infra_name }} - Load Configs"
+  include_tasks: infra/_config.yml
+  tags:
+    - always
+
+- name: Unset variables
+  set_fact:
+    jobs_base:
+    jobs_firewall:
+    jobs_webserver:
+    jobs_base_custom:
+    jobs_firewall_custom:
+    
+- name: "{{ infra_name }} - Launch Terraform"
+  terraform:
+    project_path: ../terraform/infra/{{ infra_name }}
+    state: present
+    force_init: yes
+    variables:
+      vsphere-address: "{{ vsphere.address }}"
+      vsphere-username: "{{ vsphere.username }}"
+      vsphere-password: "{{ password.vsphere }}"
+      vsphere-allow_unverified_ssl: "{{ vsphere.allow_unverified_ssl | lower }}"
+      vsphere-datacenter: "{{ vsphere.datacenter }}"
+      vsphere-cluster: "{{ vsphere.cluster }}"
+      vsphere-network-pg-public: "{{ vsphere.network.public_pg }}"
+      infra-name: "{{ infra_name }}"
+      dns-domain: "{{ dns.domain }}"
+      dns-nameservers: "{{ dns.nameservers | join(',') }}"
+      network-public-gateway: "{{ network.gateway }}"
+      network-public-ip: "{{ network.public_ip }}"
+      network-priv-range: "{{ network.private_range }}"
+      instance-mysql-count: "{{ extras.instances.amount.mysql }}"
+      instance-www-count: "{{ extras.instances.amount.www }}"
+
+# Create Database credential
+# Manage credentials type
+- name: "AWX {{ infra_name }} - Create Database Credential Type"
+  tower_credential_type:
+    name: "database-{{ infra_name }}"
+    description: "database-{{ infra_name }} Credential structure"
+    kind: cloud
+    inputs: "{{ lookup('template', '../templates/database_credential_type_input.json.j2') }}"
+    injectors: "{{ lookup('template', '../templates/database_credential_type_injector.json.j2') }}"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+  vars:
+    database_creds: "{{ password.database[infra_name] }}"
+
+# Create Database credential
+- name: "AWX {{ infra_name }} - Create Database Credential"
+  tower_credential:
+    name: "database-{{ infra_name }}"
+    description: "Database Credentials"
+    organization: "Default"
+    credential_type: "database-{{ infra_name }}"
+    inputs: "{{ lookup('template', '../templates/database_credential_input.yml.j2') }}"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+  vars:
+    database_creds: "{{ password.database[infra_name] }}"
+
+# Create User Credential
+# Manage credentials Type
+- name: "AWX {{ infra_name }} - Create {{ infra_name }} User Credential Type"
+  tower_credential_type:
+    name: "user-{{ infra_name }}"
+    description: "user-{{ infra_name }} Credential structure"
+    kind: cloud
+    inputs: "{{ lookup('template', '../templates/user_credential_type_input.json.j2') }}"
+    injectors: "{{ lookup('template', '../templates/user_credential_type_injector.json.j2') }}"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+  vars:
+    users: "{{ password.user[infra_name] }}"
+
+# Manage credentials
+- name: "AWX {{ infra_name }} - Create User Credential"
+  tower_credential:
+    name: "user-{{ infra_name }}"
+    description: "User Credentials"
+    organization: "Default"
+    credential_type: "user-{{ infra_name }}"
+    inputs: "{{ lookup('template', '../templates/user_credential_input.yml.j2') }}"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+  vars:
+    users: "{{ password.user[infra_name] }}"
+
+# Create Group
+- name: "Initialize AWX - Create {{ vsphere.address | replace('.','-') }} group"
+  tower_group:
+    name: "{{ vsphere.address | replace('.','-') }}"
+    description: "Regroup Server part of {{ vsphere.address }} infrastructure"
+    inventory: "vPloy"
+    variables: "@../config/infra/vsphere.yml"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: group_vsphere
+
+- name: "AWX {{ infra_name }} - Create {{ infra_name }} group"
+  tower_group:
+    name: "{{ infra_name }}"
+    description: "{{ infra_name }} Infrastructure"
+    inventory: "vPloy"
+    variables: 
+      infra_name: "{{ infra_name }}"
+      network: "{{ network }}"
+      dns: "{{ dns }}"
+      locale: "{{ locale }}"
+      bastion:
+        ip: "{{ management_infra_network.network.public_ip | ipaddr('address')  }}"
+        pubkey: "{{ lookup('file', '../generated/keys/bastion.pub') }}"
+      extras: "{{ extras }}"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: group_infra
+
+- name: "AWX {{ infra_name }} - Create Gateway group"
+  tower_group:
+    name: "gateway"
+    description: "Regroup Gateway Servers"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: group_gateway
+
+- name: "AWX {{ infra_name }} - Create www group"
+  tower_group:
+    name: "www"
+    description: "Regroup WebServer"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: group_www
+
+- name: "AWX {{ infra_name }} - Create mysql group"
+  tower_group:
+    name: "mysql"
+    description: "Regroup Mysql"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: group_mysql
+
+# Create Server
+- name: "AWX {{ infra_name }} - Add Gateway server"
+  tower_host:
+    name: "gateway.{{ infra_name }}"
+    description: "Gateway Infra-Example"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+    variables: 
+        private_ip: "{{ network.private_range | ipaddr('address') | ipmath(0) }}"
+        private_port: "22"
+        ansible_host: "{{ network.public_ip | ipaddr('address')  }}"
+        ansible_port: 22
+  register: host_gateway
+
+- name: "AWX {{ infra_name }} - Add Web servers"
+  tower_host:
+    name: "www{{ server_number }}.{{ infra_name }}"
+    description: "WebServer {{ server_number }} Infra-Example"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+    variables: 
+        private_ip: "{{ network.private_range | ipaddr('address') | ipmath((server_number | int)) }}"
+        private_port: "22"
+        ansible_host: "{{ network.public_ip | ipaddr('address') }}"
+        ansible_port: "{{ ((network.private_range | ipaddr('address') | ipmath((server_number | int))).split('.')[-1] | int) +22000 }}"
+  loop_control:
+    loop_var: server_number
+  with_sequence: start=1 end="{{ extras.instances.amount.www }}"
+  register: hosts_www
+
+- name: "AWX {{ infra_name }} - Add Mysql servers"
+  tower_host:
+    name: "mysql{{ server_number }}.{{ infra_name }}"
+    description: "Mysql {{ server_number }} Infra-Example"
+    inventory: "vPloy"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"
+    variables: 
+        private_ip: "{{ network.private_range | ipaddr('address') | ipmath(8 +(server_number | int)) }}"
+        private_port: "22"
+        ansible_host: "{{ network.public_ip | ipaddr('address')  }}"
+        ansible_port: "{{ ((network.private_range | ipaddr('address') | ipmath(8 +(server_number | int))).split('.')[-1] | int) +22000 }}"
+  loop_control:
+    loop_var: server_number
+  with_sequence: start=1 end="{{ extras.instances.amount.mysql }}"
+  register: hosts_mysql
+
+# Add servers to group
+- name: "AWX {{ infra_name }} - Link Servers to groups"
+  include_tasks: 
+    file: "nested_loop/awx_server_group.yml"
+  loop_control:
+    loop_var: hosts_group
+  with_items:
+    # vsphere group
+    - group_id: "{{ group_vsphere.id }}"
+      hosts_id: "{{ [ host_gateway ] }}"
+    - group_id: "{{ group_vsphere.id }}"
+      hosts_id: "{{ hosts_www.results }}"
+    - group_id: "{{ group_vsphere.id }}"
+      hosts_id: "{{ hosts_mysql.results }}"
+    # infra group
+    - group_id: "{{ group_infra.id }}"
+      hosts_id: "{{ [ host_gateway ] }}"
+    - group_id: "{{ group_infra.id }}"
+      hosts_id: "{{ hosts_www.results }}"
+    - group_id: "{{ group_infra.id }}"
+      hosts_id: "{{ hosts_mysql.results }}"
+    # gateway group
+    - group_id: "{{ group_gateway.id }}"
+      hosts_id: "{{ [ host_gateway ] }}"
+    # www group
+    - group_id: "{{ group_www.id }}"
+      hosts_id: "{{ hosts_www.results }}"
+    # mysql group
+    - group_id: "{{ group_mysql.id }}"
+      hosts_id: "{{ hosts_mysql.results }}"
+
+#### Create Job Template
+- name: "AWX {{ infra_name }} - Create Base Job Templates"
+  tower_job_template:
+    name: "{{ infra_name | title }} - {{ job_name | title }} - Base"
+    description: "Configure Base {{ job_name | title }}"
+    job_type: "run"
+    inventory: "vPloy"
+    project: "vPloy"
+    playbook: "types/{{ job_name }}/base.yml"
+    credentials:
+      - "Ansible-SSH-Key"
+    limit: "&{{ infra_name }}:&{{ job_name }}"
+    state: "present"
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: jobs_base
+  loop_control:
+    loop_var: job_name
+  with_items:
+    - gateway
+
+- name: "AWX {{ infra_name }} - Create Base Job Templates"
+  tower_job_template:
+    name: "{{ infra_name | title }} - {{ job_name | title }} - Base"
+    description: "Configure Base {{ job_name | title }}"
+    job_type: "run"
+    inventory: "vPloy"
+    project: "vPloy"
+    playbook: "types/{{ job_name }}/base.yml"
+    credentials:
+      - "Ansible-SSH-Key"
+    limit: "&{{ infra_name }}:&{{ job_name }}"
+    state: "present"
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: jobs_base_custom
+  loop_control:
+    loop_var: job_name
+  with_items:
+    - www
+    - mysql
+
+- name: "AWX {{ infra_name }} - Create Firewall Job Templates"
+  tower_job_template:
+    name: "{{ infra_name | title }} - {{ job_name | title }} - Firewall"
+    description: "Configure Firewall {{ job_name | title }}"
+    job_type: "run"
+    inventory: "vPloy"
+    project: "vPloy"
+    playbook: "types/{{ job_name }}/firewall.yml"
+    credentials:
+      - "Ansible-SSH-Key"
+    limit: "&{{ infra_name }}:&{{ job_name }}"
+    state: "present"
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: jobs_firewall
+  loop_control:
+    loop_var: job_name
+  with_items:
+    - gateway
+
+- name: "AWX {{ infra_name }} - Create Firewall Job Templates"
+  tower_job_template:
+    name: "{{ infra_name | title }} - {{ job_name | title }} - Firewall"
+    description: "Configure Firewall {{ job_name | title }}"
+    job_type: "run"
+    inventory: "vPloy"
+    project: "vPloy"
+    playbook: "types/{{ job_name }}/firewall.yml"
+    credentials:
+      - "Ansible-SSH-Key"
+    limit: "&{{ infra_name }}:&{{ job_name }}"
+    state: "present"
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: jobs_firewall_custom
+  loop_control:
+    loop_var: job_name
+  with_items:
+    - www
+    - mysql
+
+- name: "AWX {{ infra_name }} - Create WebServer Job Template"
+  tower_job_template:
+    name: "{{ infra_name | title }} - {{ job_name | title }} - WebServer"
+    description: "Configure WebServer {{ job_name | title }}"
+    job_type: "run"
+    inventory: "vPloy"
+    project: "vPloy"
+    playbook: "types/{{ job_name }}/webserver.yml"
+    credentials:
+      - "Ansible-SSH-Key"
+      - "user-{{ infra_name }}"
+    limit: "&{{ infra_name }}:&{{ job_name }}"
+    state: "present"
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: jobs_webserver
+  loop_control:
+    loop_var: job_name
+  with_items:
+    - gateway
+
+- name: "AWX {{ infra_name }} - Create WebServer Job Template"
+  tower_job_template:
+    name: "{{ infra_name | title }} - {{ job_name | title }} - WebServer"
+    description: "Configure WebServer {{ job_name | title }}"
+    job_type: "run"
+    inventory: "vPloy"
+    project: "vPloy"
+    playbook: "types/{{ job_name }}/webserver.yml"
+    credentials:
+      - "Ansible-SSH-Key"
+      - "database-{{ infra_name }}"
+      - "user-{{ infra_name }}"
+    limit: "&{{ infra_name }}:&{{ job_name }}"
+    state: "present"
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: jobs_custom_webserver
+  loop_control:
+    loop_var: job_name
+  with_items:
+    - www
+
+- name: "AWX {{ infra_name }} - Create Mysql Job Template"
+  tower_job_template:
+    name: "{{ infra_name | title }} - {{ job_name | title }} - Mysql"
+    description: "Configure Mysql {{ job_name | title }}"
+    job_type: "run"
+    inventory: "vPloy"
+    project: "vPloy"
+    playbook: "types/{{ job_name }}/mysql.yml"
+    credentials:
+      - "Ansible-SSH-Key"
+      - "database-{{ infra_name }}"
+    limit: "&{{ infra_name }}:&{{ job_name }}"
+    state: "present"
+    tower_config_file: "../generated/tower_cli.cfg"
+  register: jobs_mysql
+  loop_control:
+    loop_var: job_name
+  with_items:
+    - mysql
+
+# Create Workflow Template
+- name: "AWX {{ infra_name }} - Create {{ infra_name }} Workflow"
+  tower_workflow_template:
+    name: "{{ infra_name }}"
+    description: "Configure the full {{ infra_name }} Infrastructure"
+    organization: Default
+    allow_simultaneous: yes
+    schema: "{{ lookup('template', 'templates/workflow_all_custom.yml.j2') }}"
+    state: present
+    tower_config_file: "../generated/tower_cli.cfg"

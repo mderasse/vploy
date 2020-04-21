@@ -30,7 +30,7 @@
     include_vars: 
       file: "../config/infra/{{ item }}/network.yml"
       name: "{{ item }}"
-    with_items: "{{ infras.files | map(attribute='path') | map('basename') | list }}"
+    with_items: "{{ infras.files | sort(attribute='ctime') | map(attribute='path') | map('basename') | list }}"
 
   - name: Prepare Infra - Initialize vlan list
     set_fact:
@@ -39,7 +39,7 @@
   - name: Prepare Infra - Add vlan to the vlan list
     set_fact:
       vlans: "{{ vlans + [ lookup('vars', item).network.vlan ] }}"
-    with_items: "{{ infras.files | map(attribute='path') | map('basename') | list }}"
+    with_items: "{{ infras.files | sort(attribute='ctime') | map(attribute='path') | map('basename') | list }}"
 
   # List isos to upload
   - name: Prepare Infra - List isos to upload
@@ -65,4 +65,4 @@
         vsphere-datastore-iso: "{{ vsphere.datastore.iso }}"
         infra-names: "{{ infras.files | map(attribute='path') | map('basename') | join(',') }}"
         infra-vlans: "{{ vlans | join(',') }}"
-        list-isos: "{{ isos.files | map(attribute='path') | map('basename') | join(',') }}"
+        list-isos: "{{ isos.files | sort(attribute='ctime') | map(attribute='path') | map('basename') | join(',') }}"
